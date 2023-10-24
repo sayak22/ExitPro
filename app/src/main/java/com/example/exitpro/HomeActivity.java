@@ -9,16 +9,30 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 import com.journeyapps.barcodescanner.CaptureActivity;
 import com.journeyapps.barcodescanner.ScanContract;
 import com.journeyapps.barcodescanner.ScanOptions;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class HomeActivity extends AppCompatActivity {
 
@@ -26,6 +40,7 @@ public class HomeActivity extends AppCompatActivity {
     Button btnIn;
     int scanNumber = -1;
     String destination = "";
+    public static String outAPI = "https://0732-220-158-168-162.ngrok-free.app/smartSystem/student/exit";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,7 +67,7 @@ public class HomeActivity extends AppCompatActivity {
 
     private final ActivityResultLauncher<ScanOptions> barcodeLauncher = registerForActivityResult(new ScanContract(),
             result -> {
-                if(result.getContents() != null) {
+                if (result.getContents() != null) {
 //                    Toast.makeText(HomeActivity.this, "Scanned: " + result.getContents(), Toast.LENGTH_LONG).show();
                     scanNumber = Integer.parseInt(result.getContents());
                     showDestinationDialog(String.valueOf(scanNumber));
@@ -77,8 +92,30 @@ public class HomeActivity extends AppCompatActivity {
                 destination = destinationInput.getText().toString();
                 if (!destination.isEmpty()) {
                     // Proceed with the API call using Retrofit
-                    Toast.makeText(getApplicationContext(), "Roll Number -> " + scanNumber + "Destination -> " + destination, Toast.LENGTH_SHORT).show();
-                } else {
+//                    Toast.makeText(getApplicationContext(), "Roll Number -> " + scanNumber + "Destination -> " + destination, Toast.LENGTH_SHORT).show();
+
+                        JSONObject jsonObject = new JSONObject();
+                    try {
+                        jsonObject.put("roll_number", scanNumber);
+                        jsonObject.put("goingTo", destination);
+                    } catch (JSONException e) {
+                        throw new RuntimeException(e);
+                    }
+                    Log.e("JsonObject", String.valueOf(jsonObject));
+                    RequestQueue queue = Volley.newRequestQueue(HomeActivity.this);
+                    // Create a StringRequest with the POST method.
+                    JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.POST, outAPI, jsonObject,
+                            response -> {
+                                Toast.makeText(getApplicationContext(),"Success - > "+ response.toString(),Toast.LENGTH_SHORT).show();
+//                                listener.onSuccess(response.toString());
+                            },
+                            error -> {
+                                Toast.makeText(getApplicationContext(), "Error", Toast.LENGTH_SHORT).show();
+                            }
+                    );
+                    queue.add(jsonRequest);
+                }
+                else {
                     Toast.makeText(getApplicationContext(), "DESTINATION IS INVALID", Toast.LENGTH_SHORT).show();
                 }
             }
