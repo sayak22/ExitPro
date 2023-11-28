@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    android:orientation="vertical"
+    tools:context=".LateComersActivity">
+        <LinearLayout android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="5dp"
+            android:layout_margin="10dp"
+            android:background="@drawable/rounded_orange_background">
+
+                <TextView
+                    android:id="@+id/listStuName"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1.75"
+                    android:textSize="12sp"
+                    android:layout_marginRight="5dp"
+                    android:textAlignment="center"
+                    android:text="NAME"
+                    android:textColor="@color/black" />
+
+                <TextView
+                    android:id="@+id/listRollNumber"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:textSize="12sp"
+                    android:layout_weight="1"
+                    android:text="R. No."
+                    android:textAlignment="center"
+                    android:layout_marginRight="6dp"
+
+                    android:textColor="@color/black" />
+
+                <TextView
+                    android:id="@+id/listDestination"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:textSize="12sp"
+                    android:layout_weight="2"
+                    android:text="DESTINATION"
+                    android:layout_marginRight="5dp"
+
+                    android:textAlignment="center"
+                    android:textColor="@color/black" />
+
+                <TextView
+                    android:id="@+id/listExitTime"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:textSize="12sp"
+                    android:layout_weight="2"
+                    android:textAlignment="center"
+                    android:text="EXIT TIME"
+                    android:textColor="@color/black" />
+
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:listitem="@layout/late_item"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true" />
+
+</LinearLayout>

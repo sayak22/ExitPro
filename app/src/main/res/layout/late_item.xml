@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:padding="10dp"
+    android:layout_margin="10dp"
+    android:background="@drawable/rounded_yellow_background">
+
+    <TextView
+        android:id="@+id/stuName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1.75"
+        android:textSize="12sp"
+        android:layout_marginRight="5dp"
+        android:text="Name"
+        android:textColor="@color/black" />
+
+    <TextView
+        android:id="@+id/rollNumber"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+        android:layout_weight="1.1"
+        android:text="20101"
+        android:layout_marginRight="5dp"
+        android:textAlignment="center"
+        android:textColor="@color/black" />
+
+    <TextView
+        android:id="@+id/destination"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+        android:layout_weight="2"
+        android:text="Jaijon"
+        android:layout_marginRight="5dp"
+
+        android:textAlignment="center"
+        android:textColor="@color/black" />
+
+    <TextView
+        android:id="@+id/exitTime"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+        android:layout_weight="2"
+        android:textAlignment="center"
+        android:text="12-10-2023 at 00:00"
+        android:textColor="@color/black" />
+
+</LinearLayout>

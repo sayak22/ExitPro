@@ -34,17 +34,20 @@ import com.journeyapps.barcodescanner.ScanOptions;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class HomeActivity extends AppCompatActivity {
 
-    Button btnOut;
-    Button btnIn;
+    Button btnOut, btnIn, btnLate;
     int scanNumber = -1;
     String destination = "";
-    public static String outURL = "https://0732-220-158-168-162.ngrok-free.app/smartSystem/student/exit";
-    public static String inURL = "https://0732-220-158-168-162.ngrok-free.app/smartSystem/student/entry/";
+    GlobalVariables globalVariables = new GlobalVariables();
+
+    public static String outURL = "https://85ae-169-149-230-206.ngrok-free.app/smartSystem/student/exit";
+    public static String inURL = "https://85ae-169-149-230-206.ngrok-free.app/smartSystem/student/entry/";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +55,8 @@ public class HomeActivity extends AppCompatActivity {
         setContentView(R.layout.activity_home);
         btnOut = findViewById(R.id.btnOut);
         btnIn = findViewById(R.id.btnIn);
+        btnLate = findViewById(R.id.btnLate);
+
         btnOut.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -71,7 +76,7 @@ public class HomeActivity extends AppCompatActivity {
         btnIn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                scanNumber=-1;
+                scanNumber = -1;
                 ScanOptions options = new ScanOptions();
                 options.setOrientationLocked(false);
                 options.setPrompt("Scan a barcode");
@@ -82,7 +87,16 @@ public class HomeActivity extends AppCompatActivity {
                 inScan.launch(options);
             }
         });
+
+        btnLate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(HomeActivity.this, LateComersActivity.class);
+                startActivity(intent);
+            }
+        });
     }
+
 
     private final ActivityResultLauncher<ScanOptions> outScan = registerForActivityResult(new ScanContract(),
             result -> {
@@ -101,7 +115,7 @@ public class HomeActivity extends AppCompatActivity {
                     RequestQueue queue = Volley.newRequestQueue(HomeActivity.this);
                     JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
                             Request.Method.PUT,
-                            inURL+scanNumber,
+                            inURL + scanNumber,
                             jsonRequest,
                             response -> {
 //                                Toast.makeText(getApplicationContext(),"Success - > "+ response.toString(),Toast.LENGTH_SHORT).show();
@@ -128,7 +142,7 @@ public class HomeActivity extends AppCompatActivity {
                 if (!destination.isEmpty()) {
 //                    Toast.makeText(getApplicationContext(), "Roll Number -> " + scanNumber + "Destination -> " + destination, Toast.LENGTH_SHORT).show();
 
-                        JSONObject jsonObject = new JSONObject();
+                    JSONObject jsonObject = new JSONObject();
                     try {
                         jsonObject.put("roll_number", scanNumber);
                         jsonObject.put("goingTo", destination);
@@ -149,8 +163,7 @@ public class HomeActivity extends AppCompatActivity {
                             }
                     );
                     queue.add(jsonRequest);
-                }
-                else {
+                } else {
                     Toast.makeText(getApplicationContext(), "DESTINATION IS INVALID", Toast.LENGTH_SHORT).show();
                 }
             }
