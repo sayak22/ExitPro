@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.ProgressDialog;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
@@ -33,17 +34,18 @@ import java.util.Locale;
 
 public class LateComersActivity extends AppCompatActivity {
 
-    public static String lateURL = "https://85ae-169-149-230-206.ngrok-free.app/smartSystem/student/late";
+    public static String lateURL = "https://85ae-169-149-230-206.ngrok-free.app/exitPro/student/late";
 
     GlobalVariables globalVariables = new GlobalVariables();
     ArrayList<LateStudent> lateList = new ArrayList<>();
+    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_late_comers);
 
-        // ... Other code ...
+        showLoadingDialog();
         JSONArray jsonRequest = new JSONArray();
         RequestQueue queue = Volley.newRequestQueue(LateComersActivity.this);
         JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(
@@ -51,6 +53,7 @@ public class LateComersActivity extends AppCompatActivity {
                 lateURL,
                 null,
                 response -> {
+                    dismissLoadingDialog();
                     try {
                         // Iterate through the array to access individual objects
 //                        Toast.makeText(getApplicationContext(), "Success - > " + response.toString(), Toast.LENGTH_SHORT).show();
@@ -89,12 +92,27 @@ public class LateComersActivity extends AppCompatActivity {
                     }
                 },
                 error -> {
+                    dismissLoadingDialog();
                     Toast.makeText(getApplicationContext(), "ERROR - > " + error.toString(), Toast.LENGTH_SHORT).show();
                     Log.e("sayak", error.toString());
                 });
 
         queue.add(jsonArrayRequest);
     }
+
+    private void showLoadingDialog() {
+        progressDialog = new ProgressDialog(LateComersActivity.this);
+        progressDialog.setCancelable(false);
+        progressDialog.setMessage("Loading...");
+        progressDialog.show();
+    }
+
+    private void dismissLoadingDialog() {
+        if (progressDialog != null && progressDialog.isShowing()) {
+            progressDialog.dismiss();
+        }
+    }
+
 
     private void updateUIWithLateList() {
         RecyclerView recyclerView = findViewById(R.id.recyclerView);

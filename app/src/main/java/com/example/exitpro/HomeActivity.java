@@ -6,6 +6,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -45,9 +46,10 @@ public class HomeActivity extends AppCompatActivity {
     int scanNumber = -1;
     String destination = "";
     GlobalVariables globalVariables = new GlobalVariables();
+    private ProgressDialog progressDialog;
 
-    public static String outURL = "https://85ae-169-149-230-206.ngrok-free.app/smartSystem/student/exit";
-    public static String inURL = "https://85ae-169-149-230-206.ngrok-free.app/smartSystem/student/entry/";
+    public static String outURL = "https://85ae-169-149-230-206.ngrok-free.app/exitPro/student/exit";
+    public static String inURL = "https://85ae-169-149-230-206.ngrok-free.app/exitPro/student/entry/";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,6 +112,7 @@ public class HomeActivity extends AppCompatActivity {
             result -> {
                 if (result.getContents() != null) {
                     scanNumber = Integer.parseInt(result.getContents());
+                    showLoadingDialog();
 //                    Toast.makeText(getApplicationContext(), "Roll Number -> " + scanNumber, Toast.LENGTH_SHORT).show();
                     JSONObject jsonRequest = new JSONObject();
                     RequestQueue queue = Volley.newRequestQueue(HomeActivity.this);
@@ -118,15 +121,41 @@ public class HomeActivity extends AppCompatActivity {
                             inURL + scanNumber,
                             jsonRequest,
                             response -> {
-//                                Toast.makeText(getApplicationContext(),"Success - > "+ response.toString(),Toast.LENGTH_SHORT).show();
-                                showSuccessDialog();
+                                dismissLoadingDialog();
+//                              Toast.makeText(getApplicationContext(),"Success - > "+ response.toString(),Toast.LENGTH_SHORT).show();
+                                boolean success;
+                                try {
+                                    success = response.getBoolean("isSuccess");
+                                } catch (JSONException e) {
+                                    throw new RuntimeException(e);
+                                }
+                                if (success)
+                                    showSuccessDialog();
+                                else
+                                    Toast.makeText(getApplicationContext(),"STUDENT IS INSIDE CAMPUS!",Toast.LENGTH_SHORT).show();
                             },
-                            error -> Toast.makeText(getApplicationContext(), "ERROR", Toast.LENGTH_SHORT).show());
+                            error -> {
+                                dismissLoadingDialog();
+                                Toast.makeText(getApplicationContext(), "ERROR", Toast.LENGTH_SHORT).show();
+                            });
                     queue.add(jsonObjectRequest);
 
                 }
             });
 
+
+    private void showLoadingDialog() {
+        progressDialog = new ProgressDialog(HomeActivity.this);
+        progressDialog.setCancelable(false);
+        progressDialog.setMessage("Please wait...");
+        progressDialog.show();
+    }
+
+    private void dismissLoadingDialog() {
+        if (progressDialog != null && progressDialog.isShowing()) {
+            progressDialog.dismiss();
+        }
+    }
 
     private void showDestinationDialog(final String scannedBarcode) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -138,6 +167,7 @@ public class HomeActivity extends AppCompatActivity {
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
+                showLoadingDialog();
                 destination = destinationInput.getText().toString();
                 if (!destination.isEmpty()) {
 //                    Toast.makeText(getApplicationContext(), "Roll Number -> " + scanNumber + "Destination -> " + destination, Toast.LENGTH_SHORT).show();
@@ -154,11 +184,22 @@ public class HomeActivity extends AppCompatActivity {
                     // Create a StringRequest with the POST method.
                     JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.POST, outURL, jsonObject,
                             response -> {
+                                dismissLoadingDialog();
 //                                Toast.makeText(getApplicationContext(),"Success - > "+ response.toString(),Toast.LENGTH_SHORT).show();
+                                boolean success;
+                                try {
+                                    success = response.getBoolean("isSuccess");
+                                } catch (JSONException e) {
+                                    throw new RuntimeException(e);
+                                }
+                                if (success)
                                 showSuccessDialog();
+                                else
+                                    Toast.makeText(getApplicationContext(),"STUDENT ALREADY OUT!",Toast.LENGTH_SHORT).show();
 
                             },
                             error -> {
+                                dismissLoadingDialog();
                                 Toast.makeText(getApplicationContext(), "ERROR", Toast.LENGTH_SHORT).show();
                             }
                     );
@@ -198,6 +239,6 @@ public class HomeActivity extends AppCompatActivity {
             public void run() {
                 dialog.dismiss();
             }
-        }, 3000);
+        }, 2000);
     }
 }

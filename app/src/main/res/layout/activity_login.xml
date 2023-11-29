@@ -10,30 +10,30 @@
     android:gravity="center">
 
     <ImageView
-        android:layout_width="100dp"
-        android:layout_height="100dp"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
         android:src="@drawable/iiitu"
         android:layout_gravity="center"
         android:layout_margin="20dp"
         android:contentDescription="App Logo" />
 
-    <TextView
-        android:id="@+id/guard_id_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Guard ID"
-        android:textColor="#000"
-        android:textSize="20sp"
-        android:layout_marginTop="16dp" />
+<!--    <TextView-->
+<!--        android:id="@+id/guard_id_label"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="Guard ID"-->
+<!--        android:textColor="#000"-->
+<!--        android:textSize="26sp"-->
+<!--        android:layout_marginTop="16dp" />-->
 
     <EditText
         android:id="@+id/guard_id_input"
         android:layout_width="250dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:padding="10dp"
+        android:padding="20dp"
         android:background="@drawable/rounded_translucent_background"
-        android:textSize="16sp"
+        android:textSize="18sp"
         android:hint="Enter Guard ID"
         android:inputType="text"
         android:imeOptions="actionDone" />
@@ -43,9 +43,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Login"
-        android:textSize="18sp"
+        android:textSize="20sp"
         android:layout_marginTop="24dp"
         android:background="@drawable/rounded_button_yellow"
-        android:textColor="#FFFFFF" />
+        android:textColor="@color/black" />
 
 </LinearLayout>
