@@ -6,12 +6,26 @@
     android:layout_height="match_parent"
     tools:context=".HomeActivity">
 
+    <Button
+        android:id="@+id/btnlogOut"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/black"
+        android:background="@drawable/rounded_button_red"
+        android:text="LOG OUT"
+        android:padding="20dp"
+        android:layout_centerHorizontal="true"
+        android:layout_margin="10dp"
+        />
+
     <ImageView
+        android:id="@+id/iiitu"
         android:layout_width="300dp"
         android:layout_height="300dp"
         android:src="@drawable/iiitu"
+        android:layout_below="@id/btnlogOut"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="200dp"/>
+        android:layout_marginTop="70dp"/>
 
     <Button
         android:id="@+id/btnLate"

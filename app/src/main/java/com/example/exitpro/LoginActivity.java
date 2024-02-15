@@ -27,7 +27,6 @@ public class LoginActivity extends AppCompatActivity {
     private ProgressDialog progressDialog;
     private RequestQueue requestQueue;
     String loginURL = "https://6f18-152-58-109-40.ngrok-free.app/exitPro/security/login";
-//    String loginURL = "https://85ae-169-149-230-206.ngrok-free.app/exitPro/security/login";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

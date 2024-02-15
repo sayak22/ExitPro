@@ -10,6 +10,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -42,7 +43,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class HomeActivity extends AppCompatActivity {
 
-    Button btnOut, btnIn, btnLate;
+    Button btnOut, btnIn, btnLate, btnLogOut;
     int scanNumber = -1;
     String destination = "";
     GlobalVariables globalVariables = new GlobalVariables();
@@ -58,6 +59,19 @@ public class HomeActivity extends AppCompatActivity {
         btnOut = findViewById(R.id.btnOut);
         btnIn = findViewById(R.id.btnIn);
         btnLate = findViewById(R.id.btnLate);
+        btnLogOut = findViewById(R.id.btnlogOut);
+
+        btnLogOut.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                logout();
+            }
+        });
+
+        if (!isLoggedIn()) {
+            // If not logged in, redirect to the login activity
+            redirectToLoginActivity();
+        }
 
         btnOut.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -142,7 +156,10 @@ public class HomeActivity extends AppCompatActivity {
 
                 }
             });
-
+    @Override
+    public void onBackPressed() {
+        moveTaskToBack(true); // Move the task containing this activity to the back of the activity stack
+    }
 
     private void showLoadingDialog() {
         progressDialog = new ProgressDialog(HomeActivity.this);
@@ -155,6 +172,29 @@ public class HomeActivity extends AppCompatActivity {
         if (progressDialog != null && progressDialog.isShowing()) {
             progressDialog.dismiss();
         }
+    }
+
+    private boolean isLoggedIn() {
+        // Check if access token is available
+        SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+        return sharedPreferences.contains("access_token");
+    }
+
+    private void logout() {
+        // Clear access token from SharedPreferences
+        SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.remove("access_token");
+        editor.apply();
+
+        // Redirect to login activity
+        redirectToLoginActivity();
+    }
+
+    private void redirectToLoginActivity() {
+        Intent intent = new Intent(HomeActivity.this, LoginActivity.class);
+        startActivity(intent);
+        finish();
     }
 
     private void showDestinationDialog(final String scannedBarcode) {
