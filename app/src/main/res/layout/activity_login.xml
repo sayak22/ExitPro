@@ -35,17 +35,23 @@
         android:background="@drawable/rounded_translucent_background"
         android:textSize="18sp"
         android:hint="Enter Guard ID"
-        android:inputType="text"
+        android:inputType="textCapCharacters"
         android:imeOptions="actionDone" />
 
     <Button
         android:id="@+id/login_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Login"
-        android:textSize="20sp"
+        android:text="SEND OTP"
+        android:textSize="16sp"
         android:layout_marginTop="24dp"
+        android:paddingHorizontal="10dp"
         android:background="@drawable/rounded_button_yellow"
         android:textColor="@color/black" />
+    <FrameLayout
+        android:id="@+id/otpVerificationFragment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp" />
 
 </LinearLayout>

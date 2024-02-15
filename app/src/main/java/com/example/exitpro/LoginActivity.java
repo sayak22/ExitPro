@@ -1,6 +1,7 @@
 package com.example.exitpro;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentTransaction;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -25,7 +26,8 @@ public class LoginActivity extends AppCompatActivity {
     EditText guardID;
     private ProgressDialog progressDialog;
     private RequestQueue requestQueue;
-    String loginURL = "https://85ae-169-149-230-206.ngrok-free.app/exitPro/security/login";
+    String loginURL = "https://6f18-152-58-109-40.ngrok-free.app/exitPro/security/login";
+//    String loginURL = "https://85ae-169-149-230-206.ngrok-free.app/exitPro/security/login";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,12 +46,12 @@ public class LoginActivity extends AppCompatActivity {
                 // Validate guardId (add your own validation logic if needed)
 
                 // Send guardId to the backend
-                login(guardId);
+                sendGuardID(guardId);
             }
         });
     }
 
-    private void login(String guardId) {
+    private void sendGuardID(String guardId) {
         showLoadingDialog();
         JSONObject jsonBody = new JSONObject();
         try {
@@ -69,9 +71,10 @@ public class LoginActivity extends AppCompatActivity {
                         try {
                             boolean isSuccess = response.getBoolean("isSuccess");
                             if (isSuccess) {
-                                Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
-                                startActivity(intent);
-                                finish();
+//                                Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
+//                                startActivity(intent);
+                                    otpVerificationFragment();
+//                                finish();
                             } else {
                                 dismissLoadingDialog();
                                 guardID.setError("Wrong credentials");
@@ -91,10 +94,21 @@ public class LoginActivity extends AppCompatActivity {
         requestQueue.add(request);
     }
 
+    private void otpVerificationFragment() {
+        Bundle bundle = new Bundle();
+        bundle.putString("Guard ID", guardID.getText().toString());
+        OTPVerification otpVerificationFragment = new OTPVerification();
+        otpVerificationFragment.setArguments(bundle);
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.otpVerificationFragment, otpVerificationFragment);
+        transaction.addToBackStack(null);
+        transaction.commit();
+    }
+
     private void showLoadingDialog() {
         progressDialog = new ProgressDialog(LoginActivity.this);
         progressDialog.setCancelable(false);
-        progressDialog.setMessage("Checking credentials...");
+        progressDialog.setMessage("Sending OTP...");
         progressDialog.show();
     }
 

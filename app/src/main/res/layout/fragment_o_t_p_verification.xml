@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center_horizontal">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#9c0e0e"
+        android:text="*OTP has been sent to your registered mobile number*"/>
+    <EditText
+        android:id="@+id/editText_otp"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:padding="20dp"
+        android:background="@drawable/rounded_translucent_background"
+        android:textSize="18sp"
+        android:hint="Enter OTP"
+        android:inputType="text"
+        android:imeOptions="actionDone" />
+
+    <Button
+        android:id="@+id/button_verify_otp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Verify OTP"
+        android:layout_below="@id/editText_otp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="16dp"/>
+
+</LinearLayout>
