@@ -38,11 +38,6 @@ public class FingerprintAuthHelper {
                 super.onAuthenticationError(errorCode, errString);
 //                Toast.makeText(context.getApplicationContext(), "Problem with fingerprint hardware!", Toast.LENGTH_SHORT).show();
                 endActivity();
-//                if (errorCode == BiometricPrompt.ERROR_USER_CANCELED || errorCode==BiometricPrompt.ERROR_CANCELED) {
-//                    // Handle cancelation
-//                    ((FragmentActivity) context).finishAffinity();
-//
-//                }
             }
 
             @Override

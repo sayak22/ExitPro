@@ -41,11 +41,21 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-//    @Override
-//    protected void onResume(){
-//        super.onResume();
-//        fingerprintAuthHelper.authenticate();
-//    }
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        fingerprintAuthHelper.authenticate();
+        if (!isLoggedIn()) {
+            // If not logged in, redirect to the login activity
+            redirectToLoginActivity();
+            finish();
+        }
+        else{
+            Intent intent = new Intent(MainActivity.this, HomeActivity.class);
+            startActivity(intent);
+        }
+    }
+
 
     private boolean isLoggedIn () {
         // Check if access token is available
