@@ -19,6 +19,7 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -48,6 +49,7 @@ public class HomeActivity extends AppCompatActivity {
     int scanNumber = -1;
     String destination = "";
     RelativeLayout hHomeLayout;
+    TextView gGuardName;
     GlobalVariables globalVariables = new GlobalVariables();
     private ProgressDialog progressDialog;
     FingerprintAuthHelper fingerprintAuthHelper;
@@ -64,6 +66,7 @@ public class HomeActivity extends AppCompatActivity {
         btnLate = findViewById(R.id.btnLate);
         btnLogOut = findViewById(R.id.btnlogOut);
         hHomeLayout=findViewById(R.id.homeLayout);
+        gGuardName=findViewById(R.id.guardName);
         fingerprintAuthHelper = new FingerprintAuthHelper(this, hHomeLayout);
         fingerprintAuthHelper.authenticate();
 
@@ -77,6 +80,11 @@ public class HomeActivity extends AppCompatActivity {
         if (!isLoggedIn()) {
             // If not logged in, redirect to the login activity
             redirectToLoginActivity();
+        }
+        else{
+            SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+            String guardName =sharedPreferences.getString("guardName", null);
+            gGuardName.setText("Hi, "+guardName);
         }
 
         btnOut.setOnClickListener(new View.OnClickListener() {
@@ -190,14 +198,14 @@ public class HomeActivity extends AppCompatActivity {
     private boolean isLoggedIn() {
         // Check if access token is available
         SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
-        return sharedPreferences.contains("access_token");
+        return sharedPreferences.contains("guard_name");
     }
 
     private void logout() {
         // Clear access token from SharedPreferences
         SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.remove("access_token");
+        editor.remove("guard_name");
         editor.apply();
 
         // Redirect to login activity

@@ -60,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean isLoggedIn () {
         // Check if access token is available
         SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
-        return sharedPreferences.contains("access_token");
+        return sharedPreferences.contains("guard_name");
     }
 
     private void redirectToLoginActivity () {

@@ -6,18 +6,36 @@
     android:id="@+id/homeLayout"
     android:layout_height="match_parent"
     tools:context=".HomeActivity">
-
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
+    <TextView
+        android:id="@+id/guardName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textSize="20sp"
+        android:layout_margin="10dp"
+        android:padding="10dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:textColor="@color/material_dynamic_primary0"
+        android:text="Hi, GuardName"
+        android:background="@drawable/rounded_button_yellow"
+        />
     <Button
         android:id="@+id/btnlogOut"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:textColor="@color/black"
         android:background="@drawable/rounded_button_red"
         android:text="LOG OUT"
-        android:padding="20dp"
-        android:layout_centerHorizontal="true"
+        android:padding="10dp"
+        android:layout_weight="1"
         android:layout_margin="10dp"
         />
+
+</LinearLayout>
 
     <ImageView
         android:id="@+id/iiitu"

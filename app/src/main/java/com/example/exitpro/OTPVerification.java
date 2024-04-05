@@ -94,9 +94,14 @@ public class OTPVerification extends Fragment {
                         dismissLoadingDialog();
                         try {
                             boolean isSuccess = response.getBoolean("isSuccess");
+                            String guardName = response.getString("guardName");
+                            Toast.makeText(getActivity().getApplicationContext(), "Guard Name" + guardName,Toast.LENGTH_SHORT);
+
+
                             if (isSuccess) {
-                                saveAccessToken(otp);
+                                saveAccessToken(guardName);
                                 Intent intent = new Intent(getActivity(), HomeActivity.class);
+//                                intent.putExtra("guardName", guardName);
                                 startActivity(intent);
                                 getActivity().finish();
                             } else {
@@ -126,7 +131,7 @@ public class OTPVerification extends Fragment {
         // Save access token securely (e.g., using SharedPreferences)
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString("access_token", accessToken);
+        editor.putString("guard_name", accessToken);
         editor.apply();
     }
     private void showLoadingDialog() {
