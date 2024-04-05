@@ -18,6 +18,7 @@ import android.view.View;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -46,11 +47,13 @@ public class HomeActivity extends AppCompatActivity {
     Button btnOut, btnIn, btnLate, btnLogOut;
     int scanNumber = -1;
     String destination = "";
+    RelativeLayout hHomeLayout;
     GlobalVariables globalVariables = new GlobalVariables();
     private ProgressDialog progressDialog;
+    FingerprintAuthHelper fingerprintAuthHelper;
 
-    public static String outURL = "https://85ae-169-149-230-206.ngrok-free.app/exitPro/student/exit";
-    public static String inURL = "https://85ae-169-149-230-206.ngrok-free.app/exitPro/student/entry/";
+    public static String outURL = "https://6f18-152-58-109-40.ngrok-free.app/exitPro/student/exit";
+    public static String inURL = "https://6f18-152-58-109-40.ngrok-free.app/exitPro/student/entry/";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,6 +63,9 @@ public class HomeActivity extends AppCompatActivity {
         btnIn = findViewById(R.id.btnIn);
         btnLate = findViewById(R.id.btnLate);
         btnLogOut = findViewById(R.id.btnlogOut);
+        hHomeLayout=findViewById(R.id.homeLayout);
+        fingerprintAuthHelper = new FingerprintAuthHelper(this, hHomeLayout);
+        fingerprintAuthHelper.authenticate();
 
         btnLogOut.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -112,6 +118,12 @@ public class HomeActivity extends AppCompatActivity {
             }
         });
     }
+    @Override
+    public void onRestart() {
+        super.onRestart();
+
+        fingerprintAuthHelper.authenticate();
+    }
 
 
     private final ActivityResultLauncher<ScanOptions> outScan = registerForActivityResult(new ScanContract(),
@@ -158,6 +170,7 @@ public class HomeActivity extends AppCompatActivity {
             });
     @Override
     public void onBackPressed() {
+        super.onBackPressed();
         moveTaskToBack(true); // Move the task containing this activity to the back of the activity stack
     }
 

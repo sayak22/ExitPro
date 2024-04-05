@@ -11,6 +11,7 @@ import android.app.ProgressDialog;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -34,16 +35,22 @@ import java.util.Locale;
 
 public class LateComersActivity extends AppCompatActivity {
 
-    public static String lateURL = "https://85ae-169-149-230-206.ngrok-free.app/exitPro/student/late";
+    public static String lateURL = "https://6f18-152-58-109-40.ngrok-free.app/exitPro/student/late";
 
     GlobalVariables globalVariables = new GlobalVariables();
     ArrayList<LateStudent> lateList = new ArrayList<>();
     private ProgressDialog progressDialog;
+    FingerprintAuthHelper fingerprintAuthHelper;
+
+    LinearLayout lLatelayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_late_comers);
+        lLatelayout=findViewById(R.id.lateLayout);
+        fingerprintAuthHelper = new FingerprintAuthHelper(this, lLatelayout);
+//        fingerprintAuthHelper.authenticate();
 
         showLoadingDialog();
         JSONArray jsonRequest = new JSONArray();
@@ -98,6 +105,13 @@ public class LateComersActivity extends AppCompatActivity {
                 });
 
         queue.add(jsonArrayRequest);
+    }
+
+    @Override
+    public void onRestart() {
+        super.onRestart();
+
+        fingerprintAuthHelper.authenticate();
     }
 
     private void showLoadingDialog() {

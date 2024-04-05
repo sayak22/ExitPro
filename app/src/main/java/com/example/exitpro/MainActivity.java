@@ -11,16 +11,25 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.RelativeLayout;
 
 import com.journeyapps.barcodescanner.ScanContract;
 import com.journeyapps.barcodescanner.ScanOptions;
 
 public class MainActivity extends AppCompatActivity {
 
+    private FingerprintAuthHelper fingerprintAuthHelper;
+    RelativeLayout mMainLayout ;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mMainLayout=findViewById(R.id.mainLayout);
+//        fingerprintAuthHelper = new FingerprintAuthHelper(this, mMainLayout);
+//        fingerprintAuthHelper.authenticate();
+
+
         if (!isLoggedIn()) {
             // If not logged in, redirect to the login activity
             redirectToLoginActivity();
@@ -31,6 +40,13 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         }
     }
+
+//    @Override
+//    protected void onResume(){
+//        super.onResume();
+//        fingerprintAuthHelper.authenticate();
+//    }
+
     private boolean isLoggedIn () {
         // Check if access token is available
         SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
