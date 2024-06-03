@@ -26,7 +26,7 @@ public class LoginActivity extends AppCompatActivity {
     EditText guardID;
     private ProgressDialog progressDialog;
     private RequestQueue requestQueue;
-    String loginURL = "https://6f18-152-58-109-40.ngrok-free.app/exitPro/security/login";
+    String loginURL = "https://27a7-103-102-122-91.ngrok-free.app/security/login";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,7 +60,7 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         JsonObjectRequest request = new JsonObjectRequest(
-                Request.Method.POST,
+                Request.Method.PUT,
                 loginURL,
                 jsonBody,
                 new Response.Listener<JSONObject>() {

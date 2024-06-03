@@ -1,14 +1,11 @@
 package com.example.exitpro;
 
-//import com.example.exitpro.LateAdapter;
-
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.ProgressDialog;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.LinearLayout;
@@ -17,10 +14,7 @@ import android.widget.Toast;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
-
-import android.view.LayoutInflater;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -35,7 +29,7 @@ import java.util.Locale;
 
 public class LateComersActivity extends AppCompatActivity {
 
-    public static String lateURL = "https://6f18-152-58-109-40.ngrok-free.app/exitPro/student/late";
+    public static String lateURL = "https://27a7-103-102-122-91.ngrok-free.app/student/out/late";
 
     GlobalVariables globalVariables = new GlobalVariables();
     ArrayList<LateStudent> lateList = new ArrayList<>();
@@ -48,12 +42,10 @@ public class LateComersActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_late_comers);
-        lLatelayout=findViewById(R.id.lateLayout);
+        lLatelayout = findViewById(R.id.lateLayout);
         fingerprintAuthHelper = new FingerprintAuthHelper(this, lLatelayout);
-//        fingerprintAuthHelper.authenticate();
 
         showLoadingDialog();
-        JSONArray jsonRequest = new JSONArray();
         RequestQueue queue = Volley.newRequestQueue(LateComersActivity.this);
         JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(
                 Request.Method.GET,
@@ -62,12 +54,9 @@ public class LateComersActivity extends AppCompatActivity {
                 response -> {
                     dismissLoadingDialog();
                     try {
-                        // Iterate through the array to access individual objects
-//                        Toast.makeText(getApplicationContext(), "Success - > " + response.toString(), Toast.LENGTH_SHORT).show();
                         for (int i = 0; i < response.length(); i++) {
                             JSONObject jsonObject = response.getJSONObject(i);
 
-                            // Access individual fields
                             LateStudent stu = new LateStudent();
                             stu.setPhoneNumber(jsonObject.getString("contact"));
                             stu.setName(jsonObject.getString("name"));
@@ -76,32 +65,36 @@ public class LateComersActivity extends AppCompatActivity {
                             String outTime = jsonObject.getString("outTime");
 
                             SimpleDateFormat sdf = new SimpleDateFormat("MMM dd yyyy HH:mm:ss", Locale.getDefault());
-                            Date date = sdf.parse(outTime);
-                            Calendar calendar = Calendar.getInstance();
-                            calendar.setTime(date);
+                            try {
+                                Date date = sdf.parse(outTime);
+                                if (date != null) {
+                                    Calendar calendar = Calendar.getInstance();
+                                    calendar.setTime(date);
 
-                            stu.setYear(calendar.get(Calendar.YEAR));
-                            stu.setMonth(calendar.get(Calendar.MONTH) + 1); // Note: Month is zero-based
-                            stu.setDay(calendar.get(Calendar.DAY_OF_MONTH));
-                            stu.setHour(String.format("%02d", calendar.get(Calendar.HOUR_OF_DAY)));
-                            stu.setMinute(String.format("%02d", calendar.get(Calendar.MINUTE)));
-                            stu.setSecond(String.format("%02d", calendar.get(Calendar.SECOND)));
-                            lateList.add(stu);
+                                    stu.setYear(calendar.get(Calendar.YEAR));
+                                    stu.setMonth(calendar.get(Calendar.MONTH) + 1); // Note: Month is zero-based
+                                    stu.setDay(calendar.get(Calendar.DAY_OF_MONTH));
+                                    stu.setHour(String.format("%02d", calendar.get(Calendar.HOUR_OF_DAY)));
+                                    stu.setMinute(String.format("%02d", calendar.get(Calendar.MINUTE)));
+                                    stu.setSecond(String.format("%02d", calendar.get(Calendar.SECOND)));
+                                    lateList.add(stu);
+                                } else {
+                                    Log.e("ParseError", "Date parsing returned null for string: " + outTime);
+                                }
+                            } catch (ParseException e) {
+                                Log.e("ParseError", "Failed to parse date: " + outTime, e);
+                            }
                         }
                         globalVariables.setlateList(lateList);
-
-                        // Update the UI with the lateList data
                         updateUIWithLateList();
                     } catch (JSONException e) {
-                        e.printStackTrace();
-                    } catch (ParseException e) {
-                        throw new RuntimeException(e);
+                        Log.e("JSONError", "JSON parsing error", e);
                     }
                 },
                 error -> {
                     dismissLoadingDialog();
                     Toast.makeText(getApplicationContext(), "ERROR - > " + error.toString(), Toast.LENGTH_SHORT).show();
-                    Log.e("sayak", error.toString());
+                    Log.e("RequestError", error.toString());
                 });
 
         queue.add(jsonArrayRequest);
@@ -110,7 +103,6 @@ public class LateComersActivity extends AppCompatActivity {
     @Override
     public void onRestart() {
         super.onRestart();
-
         fingerprintAuthHelper.authenticate();
     }
 
@@ -127,14 +119,10 @@ public class LateComersActivity extends AppCompatActivity {
         }
     }
 
-
     private void updateUIWithLateList() {
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
-
-        // Log the lateList to check if it's correctly populated
-//        Log.d("abhay", String.valueOf(lateList));
 
         LateAdapter adapter = new LateAdapter(LateComersActivity.this, lateList);
         recyclerView.setAdapter(adapter);
