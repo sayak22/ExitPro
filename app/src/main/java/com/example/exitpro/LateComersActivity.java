@@ -29,7 +29,7 @@ import java.util.Locale;
 
 public class LateComersActivity extends AppCompatActivity {
 
-    public static String lateURL = "https://27a7-103-102-122-91.ngrok-free.app/student/out/late";
+    public static String lateURL = "https://exitpro-backend.onrender.com/student/out/late";
 
     GlobalVariables globalVariables = new GlobalVariables();
     ArrayList<LateStudent> lateList = new ArrayList<>();

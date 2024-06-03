@@ -42,7 +42,7 @@ public class OTPVerification extends Fragment {
     private ProgressDialog progressDialog;
     private RequestQueue requestQueue;
     String guardId;
-    String otpURL = "https://27a7-103-102-122-91.ngrok-free.app/security/otpMatch";
+    String otpURL = "https://exitpro-backend.onrender.com/security/otpMatch";
 
     @Nullable
     @Override

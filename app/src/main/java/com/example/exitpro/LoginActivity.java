@@ -26,7 +26,7 @@ public class LoginActivity extends AppCompatActivity {
     EditText guardID;
     private ProgressDialog progressDialog;
     private RequestQueue requestQueue;
-    String loginURL = "https://27a7-103-102-122-91.ngrok-free.app/security/login";
+    String loginURL = "https://exitpro-backend.onrender.com/security/login";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

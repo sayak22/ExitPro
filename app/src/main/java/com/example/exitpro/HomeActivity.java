@@ -52,8 +52,8 @@ public class HomeActivity extends AppCompatActivity {
     private ProgressDialog progressDialog;
     FingerprintAuthHelper fingerprintAuthHelper;
 
-    public static String outURL = "https://27a7-103-102-122-91.ngrok-free.app/student/gate/exit";
-    public static String inURL = "https://27a7-103-102-122-91.ngrok-free.app/student/gate/entry/";//add roll number at the end of it
+    public static String outURL = "https://exitpro-backend.onrender.com/student/gate/exit";
+    public static String inURL = "https://exitpro-backend.onrender.com/student/gate/entry/";//add roll number at the end of it
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
