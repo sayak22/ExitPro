@@ -28,6 +28,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.exitpro.Config.Config;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 import com.journeyapps.barcodescanner.CaptureActivity;
@@ -52,8 +53,8 @@ public class HomeActivity extends AppCompatActivity {
     private ProgressDialog progressDialog;
     FingerprintAuthHelper fingerprintAuthHelper;
 
-    public static String outURL = "https://exitpro-backend.onrender.com/student/gate/exit";
-    public static String inURL = "https://exitpro-backend.onrender.com/student/gate/entry/";//add roll number at the end of it
+    public static String outURL = Config.BASE_URL + "/student/gate/exit";
+    public static String inURL = Config.BASE_URL + "/student/gate/entry/";//add roll number at the end of it
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

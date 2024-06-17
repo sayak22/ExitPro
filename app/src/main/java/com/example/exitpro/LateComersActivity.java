@@ -15,6 +15,7 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.exitpro.Config.Config;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -29,7 +30,7 @@ import java.util.Locale;
 
 public class LateComersActivity extends AppCompatActivity {
 
-    public static String lateURL = "https://exitpro-backend.onrender.com/student/out/late";
+    public static String lateURL = Config.BASE_URL + "/student/out/late";
 
     GlobalVariables globalVariables = new GlobalVariables();
     ArrayList<LateStudent> lateList = new ArrayList<>();

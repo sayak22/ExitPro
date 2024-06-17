@@ -31,6 +31,7 @@ import com.android.volley.VolleyError;
 import android.app.ProgressDialog;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.exitpro.Config.Config;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -42,7 +43,7 @@ public class OTPVerification extends Fragment {
     private ProgressDialog progressDialog;
     private RequestQueue requestQueue;
     String guardId;
-    String otpURL = "https://exitpro-backend.onrender.com/security/otpMatch";
+    String otpURL = Config.BASE_URL+"/security/otpMatch";
 
     @Nullable
     @Override

@@ -17,6 +17,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.exitpro.Config.Config;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -26,7 +27,7 @@ public class LoginActivity extends AppCompatActivity {
     EditText guardID;
     private ProgressDialog progressDialog;
     private RequestQueue requestQueue;
-    String loginURL = "https://exitpro-backend.onrender.com/security/login";
+    String loginURL = Config.BASE_URL + "/security/login";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
