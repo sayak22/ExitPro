@@ -1,29 +1,25 @@
-package com.example.exitpro;
+package com.example.exitpro.Utils;
 import android.content.Context;
-import android.os.Build;
 import android.view.View;
-import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 import androidx.biometric.BiometricManager;
 import androidx.biometric.BiometricPrompt;
-import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.fragment.app.FragmentActivity;
 
 import java.util.concurrent.Executor;
 
-public class FingerprintAuthHelper {
+public class FingerprintAuthHelperUtil {
 
     private final Context context;
     private final BiometricPrompt biometricPrompt;
-    FingerprintAuthHelper fingerprintAuthHelper;
+    FingerprintAuthHelperUtil fingerprintAuthHelperUtil;
 
 
     View layout;
 
-    public FingerprintAuthHelper(Context context, View mMainLayout) {
+    public FingerprintAuthHelperUtil(Context context, View mMainLayout) {
         this.context = context;
         layout=mMainLayout;
         Executor executor = null;

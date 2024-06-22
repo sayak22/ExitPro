@@ -1,4 +1,4 @@
-package com.example.exitpro;
+package com.example.exitpro.Model;
 
 public class OutParams {
     int roll_number;

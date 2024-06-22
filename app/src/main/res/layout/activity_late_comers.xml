@@ -7,7 +7,7 @@
     android:padding="16dp"
     android:orientation="vertical"
     android:id="@+id/lateLayout"
-    tools:context=".LateComersActivity">
+    tools:context=".Activity.LateComersActivity">
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

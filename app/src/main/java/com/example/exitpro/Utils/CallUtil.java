@@ -1,4 +1,4 @@
-package com.example.exitpro;
+package com.example.exitpro.Utils;
 
 import android.Manifest;
 import android.content.Context;
