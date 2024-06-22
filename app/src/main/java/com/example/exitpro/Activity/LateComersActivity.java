@@ -111,7 +111,7 @@ public class LateComersActivity extends AppCompatActivity {
                     lateList.add(student);
                 }
             }
-            globalVariables.setlateList(lateList);
+            globalVariables.setLateList(lateList);
             updateUIWithLateList();
         } catch (JSONException e) {
             Log.e("JSONError", "JSON parsing error", e);

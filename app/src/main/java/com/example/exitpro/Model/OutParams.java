@@ -1,27 +1,40 @@
 package com.example.exitpro.Model;
 
 public class OutParams {
-    int roll_number;
-    String destination;
+    private int rollNumber;
+    private String destination;
 
-    public OutParams(int roll_number, String destination) {
-        this.roll_number = roll_number;
+    // Constructor
+    public OutParams(int rollNumber, String destination) {
+        this.rollNumber = rollNumber;
         this.destination = destination;
     }
 
-    public int getRoll_number() {
-        return roll_number;
+    // Getter for rollNumber
+    public int getRollNumber() {
+        return rollNumber;
     }
 
+    // Setter for rollNumber
+    public void setRollNumber(int rollNumber) {
+        this.rollNumber = rollNumber;
+    }
+
+    // Getter for destination
     public String getDestination() {
         return destination;
     }
 
-    public void setRoll_number(int roll_number) {
-        this.roll_number = roll_number;
-    }
-
+    // Setter for destination
     public void setDestination(String destination) {
         this.destination = destination;
+    }
+
+    @Override
+    public String toString() {
+        return "OutParams{" +
+                "rollNumber=" + rollNumber +
+                ", destination='" + destination + '\'' +
+                '}';
     }
 }

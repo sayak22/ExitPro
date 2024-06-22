@@ -34,98 +34,114 @@ import org.json.JSONObject;
 
 public class OTPVerification extends Fragment {
 
+    // UI elements
     private EditText otpEditText;
     private Button verifyButton;
     private ProgressDialog progressDialog;
     private RequestQueue requestQueue;
-    String guardId;
-    String otpURL = Config.BASE_URL+"/security/otpMatch";
+
+    // Guard ID and OTP verification URL
+    private String guardId;
+    private static final String OTP_URL = Config.BASE_URL + "/security/otpMatch";
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_o_t_p_verification, container, false);
 
+        // Initialize UI elements
         otpEditText = rootView.findViewById(R.id.editText_otp);
         verifyButton = rootView.findViewById(R.id.button_verify_otp);
+
+        // Initialize Volley request queue
         requestQueue = Volley.newRequestQueue(getActivity());
 
+        // Retrieve guard ID from arguments
         Bundle bundle = getArguments();
         if (bundle != null) {
             guardId = bundle.getString("Guard ID");
         }
-        verifyButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Call method to verify OTP
-                verifyOTP();
-            }
-        });
+
+        // Set click listener for the verify button using a lambda expression
+        verifyButton.setOnClickListener(v -> verifyOTP());
 
         return rootView;
     }
 
+    /**
+     * Verifies the OTP entered by the user.
+     */
     private void verifyOTP() {
-        // Implement OTP verification logic here
-        // For example, you can compare the entered OTP with the OTP received from the backend
-        // If the OTP matches, you can proceed with the login process
-        // Otherwise, display an error message to the user
+        // Show loading dialog
         showLoadingDialog();
+
+        // Get the entered OTP
         String otp = otpEditText.getText().toString();
+
+        // Create JSON object with guard ID and OTP
         JSONObject jsonBody = new JSONObject();
         try {
             jsonBody.put("guardId", guardId);
             jsonBody.put("otp", otp);
-            Log.e("SAYAK",jsonBody.toString());
+            Log.d("OTPVerification", "JSON Body: " + jsonBody.toString());
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
+        // Create a request to verify the OTP
         JsonObjectRequest request = new JsonObjectRequest(
                 Request.Method.POST,
-                otpURL,
+                OTP_URL,
                 jsonBody,
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        dismissLoadingDialog();
-                        try {
-                            boolean isSuccess = response.getBoolean("isSuccess");
-                            if (isSuccess) {
-                                saveAccessToken(otp);
-                                Intent intent = new Intent(getActivity(), HomeActivity.class);
-                                startActivity(intent);
-                                getActivity().finish();
-                            } else {
-                                dismissLoadingDialog();
-                                otpEditText.setError("Wrong OTP");
-                                Toast.makeText(getActivity().getApplicationContext(), "Wrong OTP!",Toast.LENGTH_SHORT);
-                            }
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+                response -> {
+                    // Dismiss loading dialog
+                    dismissLoadingDialog();
+                    try {
+                        boolean isSuccess = response.getBoolean("isSuccess");
+                        if (isSuccess) {
+                            // Save access token and navigate to HomeActivity
+                            saveAccessToken(otp);
+                            Intent intent = new Intent(getActivity(), HomeActivity.class);
+                            startActivity(intent);
+                            getActivity().finish();
+                        } else {
+                            // If OTP is wrong, show error
                             otpEditText.setError("Wrong OTP");
-                            Toast.makeText(getActivity().getApplicationContext(), "Wrong OTP!",Toast.LENGTH_SHORT);
-                            Log.e("SAYAK","catch block otpmatch");
+                            Toast.makeText(getActivity().getApplicationContext(), "Wrong OTP!", Toast.LENGTH_SHORT).show();
                         }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        otpEditText.setError("Wrong OTP");
+                        Toast.makeText(getActivity().getApplicationContext(), "Wrong OTP!", Toast.LENGTH_SHORT).show();
+                        Log.e("OTPVerification", "JSON Parsing error", e);
                     }
                 },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        dismissLoadingDialog();
-                        Toast.makeText(getActivity(), "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
+                error -> {
+                    // Dismiss loading dialog and show error message
+                    dismissLoadingDialog();
+                    Toast.makeText(getActivity(), "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
                 });
-        requestQueue.add(request);
 
+        // Add the request to the request queue
+        requestQueue.add(request);
     }
+
+    /**
+     * Saves the access token securely using SharedPreferences.
+     *
+     * @param accessToken The access token to save.
+     */
     private void saveAccessToken(String accessToken) {
-        // Save access token securely (e.g., using SharedPreferences)
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString("access_token", accessToken);
         editor.apply();
     }
+
+    /**
+     * Shows the loading dialog.
+     */
     private void showLoadingDialog() {
         progressDialog = new ProgressDialog(getActivity());
         progressDialog.setCancelable(false);
@@ -133,10 +149,12 @@ public class OTPVerification extends Fragment {
         progressDialog.show();
     }
 
+    /**
+     * Dismisses the loading dialog if it is showing.
+     */
     private void dismissLoadingDialog() {
         if (progressDialog != null && progressDialog.isShowing()) {
             progressDialog.dismiss();
         }
     }
-
 }

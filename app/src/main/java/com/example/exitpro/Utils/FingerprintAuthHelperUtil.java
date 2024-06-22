@@ -1,4 +1,5 @@
 package com.example.exitpro.Utils;
+
 import android.content.Context;
 import android.view.View;
 import android.widget.Toast;
@@ -14,101 +15,65 @@ public class FingerprintAuthHelperUtil {
 
     private final Context context;
     private final BiometricPrompt biometricPrompt;
-    FingerprintAuthHelperUtil fingerprintAuthHelperUtil;
+    private final View layout;
 
-
-    View layout;
-
-    public FingerprintAuthHelperUtil(Context context, View mMainLayout) {
+    public FingerprintAuthHelperUtil(Context context, View mainLayout) {
         this.context = context;
-        layout=mMainLayout;
-        Executor executor = null;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
-            executor = context.getMainExecutor();
-        }
-        assert executor != null;
-        biometricPrompt = new BiometricPrompt((FragmentActivity) context, executor, new BiometricPrompt.AuthenticationCallback() {
+        this.layout = mainLayout;
 
-            @Override
-            public void onAuthenticationError(int errorCode, @NonNull CharSequence errString) {
-                super.onAuthenticationError(errorCode, errString);
-//                Toast.makeText(context.getApplicationContext(), "Problem with fingerprint hardware!", Toast.LENGTH_SHORT).show();
-                endActivity();
-            }
-
-            @Override
-            public void onAuthenticationSucceeded(@NonNull BiometricPrompt.AuthenticationResult result) {
-                super.onAuthenticationSucceeded(result);
-                // Handle successful authentication
-//                mMainLayout.setVisibility(View.VISIBLE);
-            }
-
-            @Override
-            public void onAuthenticationFailed() {
-                super.onAuthenticationFailed();
-                // Handle authentication failure
-                ((FragmentActivity) context).finish(); // Close the activity upon failed authentication
-            }
-
-
-        });
+        Executor executor = context.getMainExecutor();
+        biometricPrompt = new BiometricPrompt((FragmentActivity) context, executor, authenticationCallback);
     }
+
+    private final BiometricPrompt.AuthenticationCallback authenticationCallback = new BiometricPrompt.AuthenticationCallback() {
+
+        @Override
+        public void onAuthenticationError(int errorCode, @NonNull CharSequence errString) {
+            super.onAuthenticationError(errorCode, errString);
+            Toast.makeText(context.getApplicationContext(), "Authentication error: " + errString, Toast.LENGTH_SHORT).show();
+            endActivity();
+        }
+
+        @Override
+        public void onAuthenticationSucceeded(@NonNull BiometricPrompt.AuthenticationResult result) {
+            super.onAuthenticationSucceeded(result);
+            // Handle successful authentication
+            layout.setVisibility(View.VISIBLE);
+        }
+
+        @Override
+        public void onAuthenticationFailed() {
+            super.onAuthenticationFailed();
+            // Handle authentication failure
+            ((FragmentActivity) context).finish(); // Close the activity upon failed authentication
+        }
+    };
 
     private void endActivity() {
         ((FragmentActivity) context).finishAffinity();
     }
 
     public void authenticate() {
-
-        BiometricManager biometricManager = BiometricManager.from(context.getApplicationContext());
+        BiometricManager biometricManager = BiometricManager.from(context);
         switch (biometricManager.canAuthenticate()) {
             case BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE:
-                Toast.makeText(context.getApplicationContext(), "Fingerprint Hardware missing!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(context.getApplicationContext(), "No fingerprint hardware available", Toast.LENGTH_SHORT).show();
                 break;
             case BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE:
-                Toast.makeText(context.getApplicationContext(), "Fingerprint Hardware not working!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(context.getApplicationContext(), "Fingerprint hardware is not available right now", Toast.LENGTH_SHORT).show();
                 break;
             case BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED:
-                Toast.makeText(context.getApplicationContext(), "No Fingerprint assigned!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(context.getApplicationContext(), "No fingerprint enrolled. Please add at least one fingerprint in device settings.", Toast.LENGTH_SHORT).show();
                 break;
-            default:
-                layout.setVisibility(View.VISIBLE);
-//                Toast.makeText(context.getApplicationContext(), "All OK!", Toast.LENGTH_SHORT).show();
-
+            case BiometricManager.BIOMETRIC_SUCCESS:
+                // Biometric authentication can be performed
+                BiometricPrompt.PromptInfo promptInfo = new BiometricPrompt.PromptInfo.Builder()
+                        .setTitle("Fingerprint Authentication")
+                        .setSubtitle("Scan your fingerprint to unlock")
+                        .setNegativeButtonText("Cancel")
+                        .build();
+                biometricPrompt.authenticate(promptInfo);
+                break;
         }
-
-        BiometricPrompt.PromptInfo promptInfo = new BiometricPrompt.PromptInfo.Builder()
-                .setTitle("Fingerprint Authentication")
-                .setSubtitle("Scan your fingerprint to unlock")
-                .setNegativeButtonText("Cancel")
-                .build();
-
-
-
-        biometricPrompt.authenticate(promptInfo);
-
-
-//    private final BiometricPrompt.AuthenticationCallback biometricAuthenticationCallback = new BiometricPrompt.AuthenticationCallback() {
-//        @Override
-//        public void onAuthenticationError(int errorCode, CharSequence errString) {
-//            super.onAuthenticationError(errorCode, errString);
-//            Toast.makeText(context.getApplicationContext(), "Problem with fingerprint hardware!", Toast.LENGTH_SHORT).show();
-//        }
-//
-//        @Override
-//        public void onAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result) {
-//            super.onAuthenticationSucceeded(result);
-//            // Handle successful authentication
-//
-//
-//        }
-//
-//        @Override
-//        public void onAuthenticationFailed() {
-//            super.onAuthenticationFailed();
-//            // Handle authentication failure
-//            ((FragmentActivity) context).finish(); // Close the activity upon failed authentication
-//        }
-//    };
     }
-};
+}
