@@ -101,7 +101,8 @@ public class OTPVerification extends Fragment {
                         boolean isSuccess = response.getBoolean("isSuccess");
                         if (isSuccess) {
                             // Save access token and navigate to HomeActivity
-                            saveAccessToken(otp);
+                            String guardName = response.getString("guardName");
+                            saveAccessToken(otp, guardName);
                             Intent intent = new Intent(getActivity(), HomeActivity.class);
                             startActivity(intent);
                             getActivity().finish();
@@ -130,12 +131,13 @@ public class OTPVerification extends Fragment {
     /**
      * Saves the access token securely using SharedPreferences.
      *
-     * @param accessToken The access token to save.
+     * @param otp The access token to save.
      */
-    private void saveAccessToken(String accessToken) {
+    private void saveAccessToken(String otp, String guardName) {
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString("access_token", accessToken);
+        editor.putString("otp", otp);
+        editor.putString("guard_name", guardName);
         editor.apply();
     }
 

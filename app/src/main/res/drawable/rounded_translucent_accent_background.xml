@@ -1,0 +1,4 @@
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="@color/lavender_accent_translucent" /> <!-- Semi-transparent white background -->
+    <corners android:radius="20dp" /> <!-- Rounded corners, adjust the radius as needed -->
+</shape>

@@ -1,81 +1,125 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/homeLayout"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
     tools:context=".Activity.HomeActivity">
 
-    <Button
-        android:id="@+id/btnlogOut"
-        android:layout_width="wrap_content"
+    <!-- Header Section -->
+    <LinearLayout
+        android:id="@+id/headerLayout"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="@color/black"
-        android:background="@drawable/rounded_button_red"
-        android:text="LOG OUT"
-        android:padding="20dp"
-        android:layout_centerHorizontal="true"
-        android:layout_margin="10dp"
-        />
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:gravity="center_vertical"
+        android:background="@color/lavender_accent">
 
+        <!-- EXITPRO Text -->
+        <TextView
+            android:id="@+id/tvAppName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.75"
+            android:fontFamily="cursive"
+            android:text="ExitPro"
+            android:textAlignment="center"
+            android:textColor="@android:color/black"
+            android:textSize="30sp"
+            android:textStyle="bold" />
+
+        <!-- Guard Name (Assuming it's a TextView, adjust as per your actual implementation) -->
+
+
+        <!-- LOG OUT Button -->
+        <TextView
+            android:id="@+id/guard_name_view"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:paddingStart="8dp" android:padding="5dp"
+            android:text="Hi, Guard's Name!"
+            android:textColor="@android:color/black"
+            android:textFontWeight="1"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btnlogOut"
+            android:layout_width="0dp"
+            android:layout_weight="0.75"
+            android:layout_height="wrap_content"
+            android:text="LOG OUT"
+            android:textColor="@android:color/black"
+            android:fontFamily="sans-serif"
+            android:background="@drawable/rounded_button_red"
+            android:padding="12dp"/>
+
+    </LinearLayout>
+
+    <!-- IIITU ImageView -->
     <ImageView
         android:id="@+id/iiitu"
         android:layout_width="300dp"
         android:layout_height="300dp"
-        android:src="@drawable/iiitu"
-        android:layout_below="@id/btnlogOut"
+        android:layout_below="@id/headerLayout"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="70dp"/>
+        android:layout_marginTop="100dp"
+        android:src="@drawable/iiitu" />
 
+    <!-- OUT OF CAMPUS STUDENTS Button -->
     <Button
         android:id="@+id/btnLate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/inOutBtns"
+        android:layout_above="@id/inOutBtns"
         android:layout_centerHorizontal="true"
-        android:textColor="@color/black"
         android:layout_marginStart="10dp"
         android:layout_marginTop="10dp"
         android:layout_marginEnd="10dp"
         android:layout_marginBottom="10dp"
-        android:background="@drawable/rounded_button_yellow"
         android:paddingHorizontal="40dp"
         android:paddingVertical="20dp"
-        android:text="OUT OF CAMPUS STUDENTS" />
+        android:text="OUT OF CAMPUS STUDENTS"
+        android:textColor="@android:color/black"
+        android:background="@drawable/rounded_button_yellow" />
 
+    <!-- IN and OUT Buttons Container -->
     <LinearLayout
         android:id="@+id/inOutBtns"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="20dp"
-        android:orientation="horizontal"
+        android:layout_alignParentBottom="true"
         android:layout_marginBottom="20dp"
-        android:layout_alignParentBottom="true">
+        android:orientation="horizontal"
+        android:padding="20dp">
 
+        <!-- OUT Button -->
         <Button
             android:id="@+id/btnOut"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textColor="@color/black"
-            android:background="@drawable/rounded_button_red"
-            android:text="OUT"
-            android:padding="20dp"
             android:layout_margin="10dp"
-            />
+            android:padding="20dp"
+            android:text="OUT"
+            android:fontFamily="sans-serif"
+            android:textColor="@android:color/black"
+            android:background="@drawable/rounded_button_red" />
 
+        <!-- IN Button -->
         <Button
             android:id="@+id/btnIn"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="@drawable/rounded_button_green"
-            android:textColor="@color/black"
-            android:text="IN"
-            android:padding="20dp"
             android:layout_margin="10dp"
-            />
+            android:padding="20dp"
+            android:text="IN"
+            android:fontFamily="sans-serif"
+            android:textColor="@android:color/black"
+            android:background="@drawable/rounded_button_green" />
     </LinearLayout>
-
 </RelativeLayout>

@@ -18,6 +18,7 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -39,6 +40,7 @@ public class HomeActivity extends AppCompatActivity {
 
     // UI elements
     Button btnOut, btnIn, btnLate, btnLogOut;
+    TextView guardNameView;
     RelativeLayout hHomeLayout;
 
     // Variables
@@ -63,6 +65,7 @@ public class HomeActivity extends AppCompatActivity {
         btnLate = findViewById(R.id.btnLate);
         btnLogOut = findViewById(R.id.btnlogOut);
         hHomeLayout = findViewById(R.id.homeLayout);
+        guardNameView = findViewById(R.id.guard_name_view);
 
         // Initialize fingerprint authentication
         fingerprintAuthHelperUtil = new FingerprintAuthHelperUtil(this, hHomeLayout);
@@ -190,13 +193,18 @@ public class HomeActivity extends AppCompatActivity {
 
     private boolean isLoggedIn() {
         SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
-        return sharedPreferences.contains("access_token");
+        if(sharedPreferences.contains("access_token")){
+            guardNameView.setText("Welcome, " + sharedPreferences.getString("guard_name", null) + "!");
+            return true;
+        }
+        return false;
     }
 
     private void logout() {
         SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.remove("access_token");
+        editor.remove("otp");
+        editor.remove("guard_name");
         editor.apply();
         redirectToLoginActivity();
     }

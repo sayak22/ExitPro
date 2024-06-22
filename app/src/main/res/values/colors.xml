@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="lavender_primary">#d897f0</color>
+    <color name="lavender_primary_dark">#9a65ad</color>
+    <color name="lavender_accent">#d1c4e9</color>
+    <color name="lavender_accent_translucent">#70d1c4e9</color>
+
+    <color name="purple_secondary">#673ab7</color>
+    <color name="purple_secondary_variant">#311b92</color>
+
+
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 </resources>
