@@ -1,80 +1,73 @@
-package com.example.exitpro.Activity;
+package com.example.exitpro.Activity
 
-import androidx.appcompat.app.AppCompatActivity;
+import android.content.Intent
+import android.os.Bundle
+import android.widget.RelativeLayout
+import androidx.appcompat.app.AppCompatActivity
+import com.example.exitpro.R
+import com.example.exitpro.Utils.FingerprintAuthHelperUtil
 
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.os.Bundle;
-import android.widget.RelativeLayout;
-
-import com.example.exitpro.Utils.FingerprintAuthHelperUtil;
-import com.example.exitpro.R;
-
-public class MainActivity extends AppCompatActivity {
+class MainActivity : AppCompatActivity() {
 
     // Declare FingerprintAuthHelperUtil object
-    private FingerprintAuthHelperUtil fingerprintAuthHelperUtil;
-    private RelativeLayout mMainLayout;
+    private lateinit var fingerprintAuthHelperUtil: FingerprintAuthHelperUtil
+    private lateinit var mMainLayout: RelativeLayout
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
 
         // Initialize layout elements
-        mMainLayout = findViewById(R.id.mainLayout);
+        mMainLayout = findViewById(R.id.mainLayout)
 
-        // If user is not logged in, redirect to login activity
-        if (!isLoggedIn()) {
-            redirectToLoginActivity();
-            finish();
+        // Initialize FingerprintAuthHelperUtil
+        fingerprintAuthHelperUtil = FingerprintAuthHelperUtil(this@MainActivity, mMainLayout)
+
+        // Check if the user is logged in
+        if (!isLoggedIn) {
+            // If user is not logged in, redirect to login activity
+            redirectToLoginActivity()
         } else {
             // Otherwise, redirect to home activity
-            redirectToHomeActivity();
+            redirectToHomeActivity()
         }
     }
 
-    @Override
-    protected void onRestart() {
-        super.onRestart();
+    override fun onRestart() {
+        super.onRestart()
+
         // Authenticate using fingerprint
-        fingerprintAuthHelperUtil.authenticate();
+        fingerprintAuthHelperUtil.authenticate()
 
-        // If user is not logged in, redirect to login activity
-        if (!isLoggedIn()) {
-            redirectToLoginActivity();
-            finish();
+        // Check if the user is logged in
+        if (!isLoggedIn) {
+            // If user is not logged in, redirect to login activity
+            redirectToLoginActivity()
         } else {
             // Otherwise, redirect to home activity
-            redirectToHomeActivity();
+            redirectToHomeActivity()
         }
     }
 
-    /**
-     * Check if the user is logged in by verifying the presence of an access token.
-     *
-     * return true if the access token is available, false otherwise.
-     */
-    private boolean isLoggedIn() {
-        SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
-        return sharedPreferences.contains("access_token");
+    // Check if the user is logged in by verifying the presence of an access token
+    private val isLoggedIn: Boolean
+        get() {
+            val sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE)
+            return sharedPreferences.contains("access_token")
+        }
+
+    // Redirect to the LoginActivity
+    private fun redirectToLoginActivity() {
+        Intent(this, LoginActivity::class.java).also {
+            startActivity(it)
+            finish() // Finish MainActivity so the user cannot navigate back to it
+        }
     }
 
-    /**
-     * Redirect to the LoginActivity.
-     */
-    private void redirectToLoginActivity() {
-        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-        startActivity(intent);
-        finish(); // Finish the MainActivity so the user cannot navigate back to it
-    }
-
-    /**
-     * Redirect to the HomeActivity.
-     */
-    private void redirectToHomeActivity() {
-        Intent intent = new Intent(MainActivity.this, HomeActivity.class);
-        startActivity(intent);
+    // Redirect to the HomeActivity
+    private fun redirectToHomeActivity() {
+        Intent(this, HomeActivity::class.java).also {
+            startActivity(it)
+        }
     }
 }

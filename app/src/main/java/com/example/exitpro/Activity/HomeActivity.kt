@@ -1,286 +1,340 @@
-package com.example.exitpro.Activity;
+package com.example.exitpro.Activity
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
+import android.app.Dialog
+import android.app.ProgressDialog
+import android.content.DialogInterface
+import android.content.Intent
+import android.os.Build
+import android.os.Bundle
+import android.os.Handler
+import android.util.Log
+import android.view.View
+import android.view.Window
+import android.widget.Button
+import android.widget.EditText
+import android.widget.RelativeLayout
+import android.widget.TextView
+import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import com.android.volley.Request
+import com.android.volley.VolleyError
+import com.android.volley.toolbox.JsonObjectRequest
+import com.android.volley.toolbox.Volley
+import com.example.exitpro.Config.Config
+import com.example.exitpro.GlobalVariables
+import com.example.exitpro.R
+import com.example.exitpro.Utils.CaptureActUtil
+import com.example.exitpro.Utils.FingerprintAuthHelperUtil
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanIntentResult
+import com.journeyapps.barcodescanner.ScanOptions
+import org.json.JSONException
+import org.json.JSONObject
 
-import android.app.Dialog;
-import android.app.ProgressDialog;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.os.Bundle;
-import android.os.Handler;
-import android.util.Log;
-import android.view.View;
-import android.view.Window;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
-import android.widget.Toast;
-
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
-import com.example.exitpro.Utils.CaptureActUtil;
-import com.example.exitpro.Config.Config;
-import com.example.exitpro.Utils.FingerprintAuthHelperUtil;
-import com.example.exitpro.GlobalVariables;
-import com.example.exitpro.R;
-import com.journeyapps.barcodescanner.ScanContract;
-import com.journeyapps.barcodescanner.ScanOptions;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-public class HomeActivity extends AppCompatActivity {
-
+@RequiresApi(Build.VERSION_CODES.P)
+class HomeActivity : AppCompatActivity() {
     // UI elements
-    Button btnOut, btnIn, btnLate, btnLogOut;
-    TextView guardNameView;
-    RelativeLayout hHomeLayout;
+    private lateinit var btnOut: Button
+    private lateinit var btnIn: Button
+    private lateinit var btnLate: Button
+    private lateinit var btnLogOut: Button
+    private lateinit var guardNameView: TextView
+    private lateinit var hHomeLayout: RelativeLayout
 
     // Variables
-    int scanNumber = -1;
-    String destination = "";
-    GlobalVariables globalVariables = new GlobalVariables();
-    private ProgressDialog progressDialog;
-    FingerprintAuthHelperUtil fingerprintAuthHelperUtil;
+    private var scanNumber: Int = -1
+    private var destination: String = ""
+    private lateinit var globalVariables: GlobalVariables
+    private var progressDialog: ProgressDialog? = null
+    private lateinit var fingerprintAuthHelperUtil: FingerprintAuthHelperUtil
 
-    // URLs for API requests
-    public static String outURL = Config.BASE_URL + "/student/gate/exit";
-    public static String inURL = Config.BASE_URL + "/student/gate/entry/";
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_home);
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_home)
 
         // Initialize UI elements
-        btnOut = findViewById(R.id.btnOut);
-        btnIn = findViewById(R.id.btnIn);
-        btnLate = findViewById(R.id.btnLate);
-        btnLogOut = findViewById(R.id.btnlogOut);
-        hHomeLayout = findViewById(R.id.homeLayout);
-        guardNameView = findViewById(R.id.guard_name_view);
+        btnOut = findViewById(R.id.btnOut)
+        btnIn = findViewById(R.id.btnIn)
+        btnLate = findViewById(R.id.btnLate)
+        btnLogOut = findViewById(R.id.btnlogOut)
+        hHomeLayout = findViewById(R.id.homeLayout)
+        guardNameView = findViewById(R.id.guard_name_view)
 
-        // Initialize fingerprint authentication
-        fingerprintAuthHelperUtil = new FingerprintAuthHelperUtil(this, hHomeLayout);
-        fingerprintAuthHelperUtil.authenticate();
+        // Initialize global variables
+        globalVariables = GlobalVariables()
+
+        // Initialize fingerprint authentication helper
+        fingerprintAuthHelperUtil = FingerprintAuthHelperUtil(this, hHomeLayout)
+        fingerprintAuthHelperUtil.authenticate()
 
         // Set up button listeners
-        setupButtonListeners();
+        setupButtonListeners()
 
         // Check if the user is logged in
-        if (!isLoggedIn()) {
-            redirectToLoginActivity();
+        if (!isLoggedIn) {
+            redirectToLoginActivity()
         }
     }
 
-    @Override
-    public void onRestart() {
-        super.onRestart();
-        fingerprintAuthHelperUtil.authenticate();
+    override fun onRestart() {
+        super.onRestart()
+        fingerprintAuthHelperUtil.authenticate()
     }
 
-    private void setupButtonListeners() {
+    /**
+     * Set up listeners for the buttons.
+     */
+    private fun setupButtonListeners() {
         // Logout button listener
-        btnLogOut.setOnClickListener(view -> logout());
+        btnLogOut.setOnClickListener { logout() }
 
         // Scan out button listener
-        btnOut.setOnClickListener(view -> {
-            scanNumber = -1;
-            destination = "";
-            startScan(outScan);
-        });
+        btnOut.setOnClickListener {
+            scanNumber = -1
+            destination = ""
+            startScan(outScan)
+        }
 
         // Scan in button listener
-        btnIn.setOnClickListener(view -> {
-            scanNumber = -1;
-            startScan(inScan);
-        });
+        btnIn.setOnClickListener {
+            scanNumber = -1
+            startScan(inScan)
+        }
 
         // Latecomers button listener
-        btnLate.setOnClickListener(view -> {
-            Intent intent = new Intent(HomeActivity.this, LateComersActivity.class);
-            startActivity(intent);
-        });
+        btnLate.setOnClickListener {
+            val intent = Intent(this, LateComersActivity::class.java)
+            startActivity(intent)
+        }
     }
 
-    private void startScan(ActivityResultLauncher<ScanOptions> scanLauncher) {
-        ScanOptions options = new ScanOptions();
-        options.setOrientationLocked(false);
-        options.setPrompt("Scan a barcode");
-        options.setCameraId(0); // Use a specific camera of the device
-        options.setBeepEnabled(false);
-        options.setBarcodeImageEnabled(true);
-        options.setCaptureActivity(CaptureActUtil.class);
-        scanLauncher.launch(options);
+    /**
+     * Start the barcode scanning process.
+     *
+     * @param scanLauncher The launcher for the scan activity.
+     */
+    private fun startScan(scanLauncher: ActivityResultLauncher<ScanOptions>) {
+        val options = ScanOptions().apply {
+            setOrientationLocked(false)
+            setPrompt("Scan a barcode")
+            setCameraId(0) // Use a specific camera of the device
+            setBeepEnabled(false)
+            setBarcodeImageEnabled(true)
+            setCaptureActivity(CaptureActUtil::class.java)
+        }
+        scanLauncher.launch(options)
     }
 
-    private final ActivityResultLauncher<ScanOptions> outScan = registerForActivityResult(new ScanContract(),
-            result -> {
-                if (result.getContents() != null) {
-                    scanNumber = Integer.parseInt(result.getContents());
-                    showDestinationDialog(String.valueOf(scanNumber));
-                }
-            });
+    private val outScan = registerForActivityResult(
+        ScanContract()
+    ) { result: ScanIntentResult ->
+        result.contents?.let {
+            scanNumber = it.toInt()
+            showDestinationDialog(scanNumber.toString())
+        }
+    }
 
-    private final ActivityResultLauncher<ScanOptions> inScan = registerForActivityResult(new ScanContract(),
-            result -> {
-                if (result.getContents() != null) {
-                    scanNumber = Integer.parseInt(result.getContents());
-                    handleInScan();
-                }
-            });
+    private val inScan = registerForActivityResult(
+        ScanContract()
+    ) { result: ScanIntentResult ->
+        result.contents?.let {
+            scanNumber = it.toInt()
+            handleInScan()
+        }
+    }
 
-    private void handleInScan() {
-        showLoadingDialog();
-        JSONObject jsonRequest = new JSONObject();
-        RequestQueue queue = Volley.newRequestQueue(HomeActivity.this);
+    /**
+     * Handle the scan-in process.
+     */
+    private fun handleInScan() {
+        showLoadingDialog()
+        val jsonRequest = JSONObject()
+        val queue = Volley.newRequestQueue(this)
 
         // Create and send the JSON request for in scan
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
-                Request.Method.PUT,
-                inURL + scanNumber,
-                jsonRequest,
-                response -> {
-                    dismissLoadingDialog();
-                    handleInScanResponse(response);
-                },
-                error -> {
-                    dismissLoadingDialog();
-                    Toast.makeText(getApplicationContext(), "ERROR", Toast.LENGTH_SHORT).show();
-                });
+        val jsonObjectRequest = JsonObjectRequest(
+            Request.Method.PUT,
+            "$inURL$scanNumber",
+            jsonRequest,
+            { response ->
+                dismissLoadingDialog()
+                handleInScanResponse(response)
+            },
+            { error ->
+                dismissLoadingDialog()
+                Toast.makeText(applicationContext, "ERROR", Toast.LENGTH_SHORT).show()
+                error?.printStackTrace()
+            })
 
-        queue.add(jsonObjectRequest);
+        queue.add(jsonObjectRequest)
     }
 
-    private void handleInScanResponse(JSONObject response) {
+    /**
+     * Handle the response from the in-scan request.
+     *
+     * @param response The JSON response from the server.
+     */
+    private fun handleInScanResponse(response: JSONObject) {
         try {
-            boolean success = response.getBoolean("isSuccess");
-            if (success) {
-                showSuccessDialog();
+            if (response.getBoolean("isSuccess")) {
+                showSuccessDialog()
             } else {
-                Toast.makeText(getApplicationContext(), "STUDENT IS INSIDE CAMPUS!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(applicationContext, "STUDENT IS INSIDE CAMPUS!", Toast.LENGTH_SHORT).show()
             }
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
+        } catch (e: JSONException) {
+            Log.e("JSONError", "Failed to parse in-scan response", e)
         }
     }
 
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-        moveTaskToBack(true); // Move the task containing this activity to the back of the activity stack
+    override fun onBackPressed() {
+        super.onBackPressed()
+        moveTaskToBack(true) // Move the task containing this activity to the back of the activity stack
     }
 
-    private void showLoadingDialog() {
-        progressDialog = new ProgressDialog(HomeActivity.this);
-        progressDialog.setCancelable(false);
-        progressDialog.setMessage("Please wait...");
-        progressDialog.show();
-    }
-
-    private void dismissLoadingDialog() {
-        if (progressDialog != null && progressDialog.isShowing()) {
-            progressDialog.dismiss();
+    /**
+     * Show the loading dialog.
+     */
+    private fun showLoadingDialog() {
+        progressDialog = ProgressDialog(this).apply {
+            setCancelable(false)
+            setMessage("Please wait...")
+            show()
         }
     }
 
-    private boolean isLoggedIn() {
-        SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
-        if(sharedPreferences.contains("access_token")){
-            guardNameView.setText("Welcome, " + sharedPreferences.getString("guard_name", null) + "!");
-            return true;
-        }
-        return false;
+    /**
+     * Dismiss the loading dialog if it is showing.
+     */
+    private fun dismissLoadingDialog() {
+        progressDialog?.takeIf { it.isShowing }?.dismiss()
     }
 
-    private void logout() {
-        SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.remove("otp");
-        editor.remove("guard_name");
-        editor.apply();
-        redirectToLoginActivity();
-    }
-
-    private void redirectToLoginActivity() {
-        Intent intent = new Intent(HomeActivity.this, LoginActivity.class);
-        startActivity(intent);
-        finish();
-    }
-
-    private void showDestinationDialog(final String scannedBarcode) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Enter Destination");
-
-        final EditText destinationInput = new EditText(this);
-        builder.setView(destinationInput);
-
-        builder.setPositiveButton("OK", (dialog, which) -> {
-            destination = destinationInput.getText().toString();
-            if (!destination.isEmpty()) {
-                sendOutScanRequest();
-            } else {
-                Toast.makeText(getApplicationContext(), "DESTINATION IS INVALID", Toast.LENGTH_SHORT).show();
+    /**
+     * Check if the user is logged in.
+     *
+     * @return True if the user is logged in, false otherwise.
+     */
+    private val isLoggedIn: Boolean
+        get() {
+            val sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE)
+            if (sharedPreferences.contains("access_token")) {
+                guardNameView.text = "Welcome, ${sharedPreferences.getString("guard_name", "")}!"
+                return true
             }
-        });
+            return false
+        }
 
-        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
-
-        builder.show();
+    /**
+     * Log out the user and redirect to the login activity.
+     */
+    private fun logout() {
+        val sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE)
+        with(sharedPreferences.edit()) {
+            remove("otp")
+            remove("guard_name")
+            apply()
+        }
+        redirectToLoginActivity()
     }
 
-    private void sendOutScanRequest() {
-        showLoadingDialog();
-        JSONObject jsonObject = new JSONObject();
+    /**
+     * Redirect to the login activity.
+     */
+    private fun redirectToLoginActivity() {
+        startActivity(Intent(this, LoginActivity::class.java))
+        finish()
+    }
+
+    /**
+     * Show a dialog to enter the destination after scanning a barcode.
+     *
+     * @param scannedBarcode The scanned barcode.
+     */
+    private fun showDestinationDialog(scannedBarcode: String) {
+        val builder = AlertDialog.Builder(this).apply {
+            setTitle("Enter Destination")
+            val destinationInput = EditText(context)
+            setView(destinationInput)
+
+            setPositiveButton("OK") { dialog, _ ->
+                destination = destinationInput.text.toString()
+                if (destination.isNotEmpty()) {
+                    sendOutScanRequest()
+                } else {
+                    Toast.makeText(applicationContext, "DESTINATION IS INVALID", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            setNegativeButton("Cancel") { dialog, _ -> dialog.dismiss() }
+        }
+
+        builder.show()
+    }
+
+    /**
+     * Send the out-scan request to the server.
+     */
+    private fun sendOutScanRequest() {
+        showLoadingDialog()
+        val jsonObject = JSONObject().apply {
+            put("roll_number", scanNumber)
+            put("goingTo", destination)
+        }
+
+        val queue = Volley.newRequestQueue(this)
+        val jsonRequest = JsonObjectRequest(
+            Request.Method.POST, outURL, jsonObject,
+            { response ->
+                dismissLoadingDialog()
+                handleOutScanResponse(response)
+            },
+            { error ->
+                dismissLoadingDialog()
+                Toast.makeText(applicationContext, "ERROR", Toast.LENGTH_SHORT).show()
+                error?.printStackTrace()
+            })
+
+        queue.add(jsonRequest)
+    }
+
+    /**
+     * Handle the response from the out-scan request.
+     *
+     * @param response The JSON response from the server.
+     */
+    private fun handleOutScanResponse(response: JSONObject) {
         try {
-            jsonObject.put("roll_number", scanNumber);
-            jsonObject.put("goingTo", destination);
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
-
-        RequestQueue queue = Volley.newRequestQueue(HomeActivity.this);
-        JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.POST, outURL, jsonObject,
-                response -> {
-                    dismissLoadingDialog();
-                    handleOutScanResponse(response);
-                },
-                error -> {
-                    dismissLoadingDialog();
-                    Toast.makeText(getApplicationContext(), "ERROR", Toast.LENGTH_SHORT).show();
-                });
-
-        queue.add(jsonRequest);
-    }
-
-    private void handleOutScanResponse(JSONObject response) {
-        try {
-            boolean success = response.getBoolean("isSuccess");
-            if (success) {
-                showSuccessDialog();
+            if (response.getBoolean("isSuccess")) {
+                showSuccessDialog()
             } else {
-                Toast.makeText(getApplicationContext(), "STUDENT ALREADY OUT!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(applicationContext, "STUDENT ALREADY OUT!", Toast.LENGTH_SHORT).show()
             }
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
+        } catch (e: JSONException) {
+            Log.e("JSONError", "Failed to parse out-scan response", e)
         }
     }
 
-    private void showSuccessDialog() {
-        Dialog dialog = new Dialog(this);
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialog.setContentView(R.layout.success_dialog);
-        dialog.setCancelable(false);
-        dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-        dialog.show();
+    /**
+     * Show a success dialog for a short duration.
+     */
+    private fun showSuccessDialog() {
+        val dialog = Dialog(this).apply {
+            requestWindowFeature(Window.FEATURE_NO_TITLE)
+            setContentView(R.layout.success_dialog)
+            setCancelable(false)
+            window?.setBackgroundDrawableResource(android.R.color.transparent)
+            show()
+        }
 
-        new Handler().postDelayed(() -> dialog.dismiss(), 2000);
+        Handler().postDelayed({ dialog.dismiss() }, 2000)
+    }
+
+    companion object {
+        // URLs for API requests
+        private const val outURL: String = "${Config.BASE_URL}/student/gate/exit"
+        private const val inURL: String = "${Config.BASE_URL}/student/gate/entry/"
     }
 }

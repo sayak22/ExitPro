@@ -1,8 +1,3 @@
-package com.example.exitpro.Interface;
-import retrofit2.Call;
-import retrofit2.http.Body;
-import retrofit2.http.POST;
+package com.example.exitpro.Interface
 
-public interface ApiInterface {
-
-}
+interface ApiInterface 

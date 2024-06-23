@@ -1,165 +1,188 @@
-package com.example.exitpro.Activity;
+package com.example.exitpro.Activity
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+import android.app.ProgressDialog
+import android.os.Build
+import android.os.Bundle
+import android.util.Log
+import android.widget.LinearLayout
+import android.widget.Toast
+import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.android.volley.Request
+import com.android.volley.VolleyError
+import com.android.volley.toolbox.JsonArrayRequest
+import com.android.volley.toolbox.Volley
+import com.example.exitpro.Adapter.LateAdapter
+import com.example.exitpro.Config.Config
+import com.example.exitpro.GlobalVariables
+import com.example.exitpro.Model.LateStudent
+import com.example.exitpro.R
+import com.example.exitpro.Utils.FingerprintAuthHelperUtil
+import org.json.JSONArray
+import org.json.JSONException
+import org.json.JSONObject
+import java.text.ParseException
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
-import android.app.ProgressDialog;
-import android.os.Bundle;
-import android.util.Log;
-import android.widget.LinearLayout;
-import android.widget.Toast;
+@RequiresApi(Build.VERSION_CODES.P)
+class LateComersActivity : AppCompatActivity() {
+    // Global variables and UI elements
+    private lateinit var globalVariables: GlobalVariables
+    private lateinit var lateList: ArrayList<LateStudent>
+    private var progressDialog: ProgressDialog? = null
+    private var fingerprintAuthHelperUtil: FingerprintAuthHelperUtil? = null
+    private lateinit var lLateLayout: LinearLayout
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.Volley;
-import com.example.exitpro.Config.Config;
-import com.example.exitpro.GlobalVariables;
-import com.example.exitpro.Adapter.LateAdapter;
-import com.example.exitpro.Model.LateStudent;
-import com.example.exitpro.R;
-import com.example.exitpro.Utils.FingerprintAuthHelperUtil;
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_late_comers)
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Locale;
-
-public class LateComersActivity extends AppCompatActivity {
-
-    // URL for fetching late students
-    public static String lateURL = Config.BASE_URL + "/student/out/late";
-
-    // Variables
-    GlobalVariables globalVariables = new GlobalVariables();
-    ArrayList<LateStudent> lateList = new ArrayList<>();
-    private ProgressDialog progressDialog;
-    FingerprintAuthHelperUtil fingerprintAuthHelperUtil;
-
-    // UI element
-    LinearLayout lLatelayout;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_late_comers);
+        // Initialize global variables
+        globalVariables = GlobalVariables()
+        lateList = ArrayList()
 
         // Initialize UI elements
-        lLatelayout = findViewById(R.id.lateLayout);
+        lLateLayout = findViewById(R.id.lateLayout)
 
-        // Initialize fingerprint authentication
-        fingerprintAuthHelperUtil = new FingerprintAuthHelperUtil(this, lLatelayout);
+        // Initialize fingerprint authentication helper
+        fingerprintAuthHelperUtil = FingerprintAuthHelperUtil(this, lLateLayout)
 
         // Show loading dialog
-        showLoadingDialog();
+        showLoadingDialog()
 
         // Fetch the list of late students
-        fetchLateStudents();
+        fetchLateStudents()
     }
 
-    @Override
-    public void onRestart() {
-        super.onRestart();
-        fingerprintAuthHelperUtil.authenticate();
+    override fun onRestart() {
+        super.onRestart()
+        fingerprintAuthHelperUtil?.authenticate()
     }
 
-    private void showLoadingDialog() {
-        progressDialog = new ProgressDialog(LateComersActivity.this);
-        progressDialog.setCancelable(false);
-        progressDialog.setMessage("Loading...");
-        progressDialog.show();
-    }
-
-    private void dismissLoadingDialog() {
-        if (progressDialog != null && progressDialog.isShowing()) {
-            progressDialog.dismiss();
+    /**
+     * Show the loading dialog.
+     */
+    private fun showLoadingDialog() {
+        progressDialog = ProgressDialog(this).apply {
+            setCancelable(false)
+            setMessage("Loading...")
+            show()
         }
     }
 
-    private void fetchLateStudents() {
-        RequestQueue queue = Volley.newRequestQueue(LateComersActivity.this);
+    /**
+     * Dismiss the loading dialog if it is showing.
+     */
+    private fun dismissLoadingDialog() {
+        progressDialog?.takeIf { it.isShowing }?.dismiss()
+    }
+
+    /**
+     * Fetch the list of late students from the backend.
+     */
+    private fun fetchLateStudents() {
+        val queue = Volley.newRequestQueue(this)
 
         // Create and send JSON array request to fetch late students
-        JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(
-                Request.Method.GET,
-                lateURL,
-                null,
-                response -> {
-                    dismissLoadingDialog();
-                    handleResponse(response);
-                },
-                error -> {
-                    dismissLoadingDialog();
-                    handleError(error);
-                });
+        val jsonArrayRequest = JsonArrayRequest(
+            Request.Method.GET,
+            LATE_URL,
+            null,
+            { response ->
+                dismissLoadingDialog()
+                handleResponse(response)
+            },
+            { error ->
+                dismissLoadingDialog()
+                handleError(error)
+            })
 
-        queue.add(jsonArrayRequest);
+        queue.add(jsonArrayRequest)
     }
 
-    private void handleResponse(org.json.JSONArray response) {
+    /**
+     * Handle the response from the backend.
+     *
+     * @param response The JSON array response from the backend.
+     */
+    private fun handleResponse(response: JSONArray) {
         try {
-            for (int i = 0; i < response.length(); i++) {
-                JSONObject jsonObject = response.getJSONObject(i);
-                LateStudent student = parseLateStudent(jsonObject);
-                if (student != null) {
-                    lateList.add(student);
+            for (i in 0 until response.length()) {
+                val jsonObject = response.getJSONObject(i)
+                val student = parseLateStudent(jsonObject)
+                student?.let { lateList.add(it) }
+            }
+            globalVariables.lateList = lateList
+            updateUIWithLateList()
+        } catch (e: JSONException) {
+            Log.e("JSONError", "JSON parsing error", e)
+        }
+    }
+
+    /**
+     * Parse a JSON object into a LateStudent object.
+     *
+     * @param jsonObject The JSON object representing a late student.
+     * @return The parsed LateStudent object, or null if parsing fails.
+     */
+    private fun parseLateStudent(jsonObject: JSONObject): LateStudent? {
+        return try {
+            val student = LateStudent().apply {
+                phoneNumber = jsonObject.getString("contact")
+                name = jsonObject.getString("name")
+                rollNumber = jsonObject.getInt("roll_number")
+                destination = jsonObject.getString("goingTo")
+
+                val outTime = jsonObject.getString("outTime")
+                val sdf = SimpleDateFormat("MMM dd yyyy HH:mm:ss", Locale.getDefault())
+                val date = sdf.parse(outTime)
+
+                date?.let {
+                    val calendar = Calendar.getInstance().apply { time = it }
+                    year = calendar[Calendar.YEAR]
+                    month = calendar[Calendar.MONTH] + 1 // Month is zero-based
+                    day = calendar[Calendar.DAY_OF_MONTH]
+                    hour = String.format("%02d", calendar[Calendar.HOUR_OF_DAY])
+                    minute = String.format("%02d", calendar[Calendar.MINUTE])
+                    second = String.format("%02d", calendar[Calendar.SECOND])
                 }
             }
-            globalVariables.setLateList(lateList);
-            updateUIWithLateList();
-        } catch (JSONException e) {
-            Log.e("JSONError", "JSON parsing error", e);
+            student
+        } catch (e: JSONException) {
+            Log.e("ParseError", "Failed to parse late student", e)
+            null
+        } catch (e: ParseException) {
+            Log.e("ParseError", "Failed to parse date", e)
+            null
         }
     }
 
-    private LateStudent parseLateStudent(JSONObject jsonObject) {
-        try {
-            LateStudent student = new LateStudent();
-            student.setPhoneNumber(jsonObject.getString("contact"));
-            student.setName(jsonObject.getString("name"));
-            student.setRollNumber(jsonObject.getInt("roll_number"));
-            student.setDestination(jsonObject.getString("goingTo"));
+    /**
+     * Handle errors during network requests.
+     *
+     * @param error The error that occurred.
+     */
+    private fun handleError(error: VolleyError) {
+        Toast.makeText(applicationContext, "ERROR - > $error", Toast.LENGTH_SHORT).show()
+        Log.e("RequestError", error.toString())
+    }
 
-            String outTime = jsonObject.getString("outTime");
-            SimpleDateFormat sdf = new SimpleDateFormat("MMM dd yyyy HH:mm:ss", Locale.getDefault());
-            Date date = sdf.parse(outTime);
-
-            if (date != null) {
-                Calendar calendar = Calendar.getInstance();
-                calendar.setTime(date);
-                student.setYear(calendar.get(Calendar.YEAR));
-                student.setMonth(calendar.get(Calendar.MONTH) + 1); // Note: Month is zero-based
-                student.setDay(calendar.get(Calendar.DAY_OF_MONTH));
-                student.setHour(String.format("%02d", calendar.get(Calendar.HOUR_OF_DAY)));
-                student.setMinute(String.format("%02d", calendar.get(Calendar.MINUTE)));
-                student.setSecond(String.format("%02d", calendar.get(Calendar.SECOND)));
-                return student;
-            } else {
-                Log.e("ParseError", "Date parsing returned null for string: " + outTime);
-            }
-        } catch (JSONException | ParseException e) {
-            Log.e("ParseError", "Failed to parse late student", e);
+    /**
+     * Update the UI with the list of late students.
+     */
+    private fun updateUIWithLateList() {
+        val recyclerView = findViewById<RecyclerView>(R.id.recyclerView).apply {
+            layoutManager = LinearLayoutManager(this@LateComersActivity)
+            adapter = LateAdapter(this@LateComersActivity, lateList)
         }
-        return null;
     }
 
-    private void handleError(Throwable error) {
-        Toast.makeText(getApplicationContext(), "ERROR - > " + error.toString(), Toast.LENGTH_SHORT).show();
-        Log.e("RequestError", error.toString());
-    }
-
-    private void updateUIWithLateList() {
-        RecyclerView recyclerView = findViewById(R.id.recyclerView);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        recyclerView.setLayoutManager(layoutManager);
-
-        LateAdapter adapter = new LateAdapter(LateComersActivity.this, lateList);
-        recyclerView.setAdapter(adapter);
+    companion object {
+        // URL for fetching late students
+        private const val LATE_URL: String = Config.BASE_URL + "/student/out/late"
     }
 }

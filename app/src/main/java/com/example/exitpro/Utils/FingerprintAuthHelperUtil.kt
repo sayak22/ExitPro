@@ -1,79 +1,101 @@
-package com.example.exitpro.Utils;
+package com.example.exitpro.Utils
 
-import android.content.Context;
-import android.view.View;
-import android.widget.Toast;
+import android.content.Context
+import android.os.Build
+import android.view.View
+import android.widget.Toast
+import androidx.annotation.RequiresApi
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
+import androidx.fragment.app.FragmentActivity
+import java.util.concurrent.Executor
 
-import androidx.annotation.NonNull;
-import androidx.biometric.BiometricManager;
-import androidx.biometric.BiometricPrompt;
-import androidx.fragment.app.FragmentActivity;
+@RequiresApi(Build.VERSION_CODES.P)
+class FingerprintAuthHelperUtil(private val context: Context, private val layout: View) {
 
-import java.util.concurrent.Executor;
+    // BiometricPrompt object for authentication
+    private val biometricPrompt: BiometricPrompt
 
-public class FingerprintAuthHelperUtil {
+    // Executor for running authentication callbacks
+    private val executor: Executor = context.mainExecutor
 
-    private final Context context;
-    private final BiometricPrompt biometricPrompt;
-    private final View layout;
-
-    public FingerprintAuthHelperUtil(Context context, View mainLayout) {
-        this.context = context;
-        this.layout = mainLayout;
-
-        Executor executor = context.getMainExecutor();
-        biometricPrompt = new BiometricPrompt((FragmentActivity) context, executor, authenticationCallback);
-    }
-
-    private final BiometricPrompt.AuthenticationCallback authenticationCallback = new BiometricPrompt.AuthenticationCallback() {
-
-        @Override
-        public void onAuthenticationError(int errorCode, @NonNull CharSequence errString) {
-            super.onAuthenticationError(errorCode, errString);
-            Toast.makeText(context.getApplicationContext(), "Authentication error: " + errString, Toast.LENGTH_SHORT).show();
-            endActivity();
+    // Authentication callback handling different authentication outcomes
+    private val authenticationCallback = object : BiometricPrompt.AuthenticationCallback() {
+        override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+            super.onAuthenticationError(errorCode, errString)
+            Toast.makeText(
+                context.applicationContext,
+                "Authentication error: $errString",
+                Toast.LENGTH_SHORT
+            ).show()
+            endActivity()
         }
 
-        @Override
-        public void onAuthenticationSucceeded(@NonNull BiometricPrompt.AuthenticationResult result) {
-            super.onAuthenticationSucceeded(result);
+        override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+            super.onAuthenticationSucceeded(result)
             // Handle successful authentication
-            layout.setVisibility(View.VISIBLE);
+            layout.visibility = View.VISIBLE
         }
 
-        @Override
-        public void onAuthenticationFailed() {
-            super.onAuthenticationFailed();
+        override fun onAuthenticationFailed() {
+            super.onAuthenticationFailed()
             // Handle authentication failure
-            ((FragmentActivity) context).finish(); // Close the activity upon failed authentication
+            (context as FragmentActivity).finish() // Close the activity upon failed authentication
         }
-    };
-
-    private void endActivity() {
-        ((FragmentActivity) context).finishAffinity();
     }
 
-    public void authenticate() {
-        BiometricManager biometricManager = BiometricManager.from(context);
-        switch (biometricManager.canAuthenticate()) {
-            case BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE:
-                Toast.makeText(context.getApplicationContext(), "No fingerprint hardware available", Toast.LENGTH_SHORT).show();
-                break;
-            case BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE:
-                Toast.makeText(context.getApplicationContext(), "Fingerprint hardware is not available right now", Toast.LENGTH_SHORT).show();
-                break;
-            case BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED:
-                Toast.makeText(context.getApplicationContext(), "No fingerprint enrolled. Please add at least one fingerprint in device settings.", Toast.LENGTH_SHORT).show();
-                break;
-            case BiometricManager.BIOMETRIC_SUCCESS:
+    init {
+        // Initialize BiometricPrompt
+        biometricPrompt = BiometricPrompt(
+            (context as FragmentActivity),
+            executor,
+            authenticationCallback
+        )
+    }
+
+    /**
+     * End the activity and finish all activities in the task.
+     */
+    private fun endActivity() {
+        (context as FragmentActivity).finishAffinity()
+    }
+
+    /**
+     * Start the biometric authentication process.
+     */
+    fun authenticate() {
+        val biometricManager = BiometricManager.from(context)
+        when (biometricManager.canAuthenticate()) {
+            BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> {
+                Toast.makeText(
+                    context.applicationContext,
+                    "No fingerprint hardware available",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+            BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> {
+                Toast.makeText(
+                    context.applicationContext,
+                    "Fingerprint hardware is not available right now",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+            BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> {
+                Toast.makeText(
+                    context.applicationContext,
+                    "No fingerprint enrolled. Please add at least one fingerprint in device settings.",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+            BiometricManager.BIOMETRIC_SUCCESS -> {
                 // Biometric authentication can be performed
-                BiometricPrompt.PromptInfo promptInfo = new BiometricPrompt.PromptInfo.Builder()
-                        .setTitle("Fingerprint Authentication")
-                        .setSubtitle("Scan your fingerprint to unlock")
-                        .setNegativeButtonText("Cancel")
-                        .build();
-                biometricPrompt.authenticate(promptInfo);
-                break;
+                val promptInfo = BiometricPrompt.PromptInfo.Builder()
+                    .setTitle("Fingerprint Authentication")
+                    .setSubtitle("Scan your fingerprint to unlock")
+                    .setNegativeButtonText("Cancel")
+                    .build()
+                biometricPrompt.authenticate(promptInfo)
+            }
         }
     }
 }
