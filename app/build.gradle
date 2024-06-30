@@ -39,7 +39,7 @@ dependencies {
     // Material UI
     implementation 'com.google.android.material:material:<version>'
 
-    // zxing android embedded github dependency
+    // zxing android embedded github dependency (for barcode scanner)
     implementation 'com.journeyapps:zxing-android-embedded:4.3.0'
 
     // Retrofit
