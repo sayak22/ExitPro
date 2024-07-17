@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/mainLayout"
-    tools:context=".Activity.MainActivity">
+    tools:context="com.example.exitpro.Activity.MainActivity">
 
 
 

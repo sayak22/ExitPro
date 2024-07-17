@@ -220,7 +220,7 @@ class HomeActivity : AppCompatActivity() {
     private val isLoggedIn: Boolean
         get() {
             val sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE)
-            if (sharedPreferences.contains("access_token")) {
+            if (sharedPreferences.contains("guard_name")) {
                 guardNameView.text = "Welcome, ${sharedPreferences.getString("guard_name", "")}!"
                 return true
             }

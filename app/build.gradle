@@ -9,9 +9,10 @@ android {
     compileSdk 34
 
     defaultConfig {
-        applicationId "com.example.exitpro"
+        applicationId "com.sayak.exitpro"
         minSdk 19
         targetSdk 34
+        multiDexEnabled true
         versionCode 1
         versionName "1.0"
 
