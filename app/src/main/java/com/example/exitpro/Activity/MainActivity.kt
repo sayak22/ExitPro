@@ -1,8 +1,10 @@
 package com.example.exitpro.Activity
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.widget.RelativeLayout
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.example.exitpro.R
 import com.example.exitpro.Utils.FingerprintAuthHelperUtil
@@ -13,6 +15,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var fingerprintAuthHelperUtil: FingerprintAuthHelperUtil
     private lateinit var mMainLayout: RelativeLayout
 
+    @RequiresApi(Build.VERSION_CODES.P)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -33,6 +36,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.P)
     override fun onRestart() {
         super.onRestart()
 
@@ -53,7 +57,7 @@ class MainActivity : AppCompatActivity() {
     private val isLoggedIn: Boolean
         get() {
             val sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE)
-            return sharedPreferences.contains("access_token")
+            return sharedPreferences.contains("guard_name")
         }
 
     // Redirect to the LoginActivity

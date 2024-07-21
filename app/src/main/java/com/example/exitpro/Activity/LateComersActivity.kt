@@ -8,6 +8,7 @@ import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.android.volley.Request
@@ -30,36 +31,84 @@ import java.util.Locale
 
 @RequiresApi(Build.VERSION_CODES.P)
 class LateComersActivity : AppCompatActivity() {
-    // Global variables and UI elements
+
+    // Declare global variables and UI elements
     private lateinit var globalVariables: GlobalVariables
     private lateinit var lateList: ArrayList<LateStudent>
     private var progressDialog: ProgressDialog? = null
     private var fingerprintAuthHelperUtil: FingerprintAuthHelperUtil? = null
     private lateinit var lLateLayout: LinearLayout
+    private lateinit var searchView: SearchView
+    private lateinit var lateAdapter: LateAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_late_comers)
 
-        // Initialize global variables
+        // Initialize global variables and UI elements
         globalVariables = GlobalVariables()
         lateList = ArrayList()
-
-        // Initialize UI elements
         lLateLayout = findViewById(R.id.lateLayout)
 
         // Initialize fingerprint authentication helper
         fingerprintAuthHelperUtil = FingerprintAuthHelperUtil(this, lLateLayout)
 
-        // Show loading dialog
-        showLoadingDialog()
+        // Initialize RecyclerView and its adapter
+        lateAdapter = LateAdapter(this, lateList)
+        val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.adapter = lateAdapter
 
-        // Fetch the list of late students
+        // Show loading dialog and fetch the list of late students
+        showLoadingDialog()
         fetchLateStudents()
+
+        // Initialize and set up the search view
+        searchView = findViewById(R.id.student_search)
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                // Called when the user submits the query
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                // Called when the user changes the query text
+                filterList(newText)
+                return true
+            }
+        })
+    }
+
+    /**
+     * Filter the list of students based on the search text.
+     *
+     * @param text The text to filter the list by.
+     */
+    private fun filterList(text: String?) {
+        val filteredList: MutableList<LateStudent> = mutableListOf()
+
+        // Filter the lateList based on the search text
+        text?.let { // this block only executes if text is not null
+            for (item in lateList) {
+                if (item.name?.lowercase()?.contains(text.lowercase()) == true) {
+                    filteredList.add(item)
+                }
+            }
+        }
+
+            // Update the adapter with the filtered list (even if it is empty)
+            lateAdapter.setFilteredList(filteredList)
+
+        // Show a toast if no students match the search text
+        if (filteredList.isEmpty())
+            Toast.makeText(this, "Student not found.", Toast.LENGTH_SHORT).show()
+
+
     }
 
     override fun onRestart() {
         super.onRestart()
+        // Authenticate using fingerprint when the activity restarts
         fingerprintAuthHelperUtil?.authenticate()
     }
 
@@ -117,7 +166,7 @@ class LateComersActivity : AppCompatActivity() {
                 student?.let { lateList.add(it) }
             }
             globalVariables.lateList = lateList
-            updateUIWithLateList()
+            lateAdapter.notifyDataSetChanged()  // Notify the adapter of data changes
         } catch (e: JSONException) {
             Log.e("JSONError", "JSON parsing error", e)
         }
@@ -169,16 +218,6 @@ class LateComersActivity : AppCompatActivity() {
     private fun handleError(error: VolleyError) {
         Toast.makeText(applicationContext, "ERROR - > $error", Toast.LENGTH_SHORT).show()
         Log.e("RequestError", error.toString())
-    }
-
-    /**
-     * Update the UI with the list of late students.
-     */
-    private fun updateUIWithLateList() {
-        val recyclerView = findViewById<RecyclerView>(R.id.recyclerView).apply {
-            layoutManager = LinearLayoutManager(this@LateComersActivity)
-            adapter = LateAdapter(this@LateComersActivity, lateList)
-        }
     }
 
     companion object {
