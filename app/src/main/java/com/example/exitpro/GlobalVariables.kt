@@ -1,22 +1,14 @@
-package com.example.exitpro;
+package com.example.exitpro
 
-import android.app.Application;
+import android.app.Application
+import com.example.exitpro.Model.LateStudent
 
-import com.example.exitpro.Model.LateStudent;
-
-import java.util.ArrayList;
-
-public class GlobalVariables extends Application {
-    private ArrayList<LateStudent> lateList;
-
-    public ArrayList<LateStudent> getLateList() {
-        if (lateList == null) {
-            lateList = new ArrayList<>();
+class GlobalVariables : Application() {
+    var lateList: ArrayList<LateStudent>? = null
+        get() {
+            if (field == null) {
+                field = ArrayList<LateStudent>()
+            }
+            return field
         }
-        return lateList;
-    }
-
-    public void setLateList(ArrayList<LateStudent> lateList) {
-        this.lateList = lateList;
-    }
 }
