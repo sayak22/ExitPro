@@ -1,4 +1,4 @@
-package com.example.exitpro.Activity
+package com.example.exitpro.activity
 
 import android.content.Intent
 import android.os.Build
@@ -7,7 +7,7 @@ import android.widget.RelativeLayout
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.example.exitpro.R
-import com.example.exitpro.Utils.FingerprintAuthHelperUtil
+import com.example.exitpro.utils.FingerprintAuthHelperUtil
 
 class MainActivity : AppCompatActivity() {
 

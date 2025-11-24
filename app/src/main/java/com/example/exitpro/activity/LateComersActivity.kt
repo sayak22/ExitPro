@@ -1,9 +1,10 @@
-package com.example.exitpro.Activity
+package com.example.exitpro.activity
 
-import android.app.ProgressDialog
+import android.app.Dialog
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.Window
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.annotation.RequiresApi
@@ -15,12 +16,13 @@ import com.android.volley.Request
 import com.android.volley.VolleyError
 import com.android.volley.toolbox.JsonArrayRequest
 import com.android.volley.toolbox.Volley
-import com.example.exitpro.Adapter.LateAdapter
-import com.example.exitpro.Config.Config
+import com.example.exitpro.adapter.LateAdapter
+import com.example.exitpro.config.Config
 import com.example.exitpro.GlobalVariables
 import com.example.exitpro.Model.LateStudent
 import com.example.exitpro.R
-import com.example.exitpro.Utils.FingerprintAuthHelperUtil
+import com.example.exitpro.utils.FingerprintAuthHelperUtil
+import com.example.exitpro.utils.PermissionUtil
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -35,7 +37,7 @@ class LateComersActivity : AppCompatActivity() {
     // Declare global variables and UI elements
     private lateinit var globalVariables: GlobalVariables
     private lateinit var lateList: ArrayList<LateStudent>
-    private var progressDialog: ProgressDialog? = null
+    private var loadingDialog: Dialog? = null
     private var fingerprintAuthHelperUtil: FingerprintAuthHelperUtil? = null
     private lateinit var lLateLayout: LinearLayout
     private lateinit var searchView: SearchView
@@ -59,6 +61,8 @@ class LateComersActivity : AppCompatActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = lateAdapter
 
+        requestCallPhonePermission()
+        
         // Show loading dialog and fetch the list of late students
         showLoadingDialog()
         fetchLateStudents()
@@ -113,21 +117,23 @@ class LateComersActivity : AppCompatActivity() {
     }
 
     /**
-     * Show the loading dialog.
+     * Display a loading dialog while fetching data.
      */
     private fun showLoadingDialog() {
-        progressDialog = ProgressDialog(this).apply {
+        loadingDialog = Dialog(this).apply {
+            requestWindowFeature(Window.FEATURE_NO_TITLE)
+            setContentView(R.layout.loading_dialog)
             setCancelable(false)
-            setMessage("Loading...")
+            window?.setBackgroundDrawableResource(android.R.color.transparent)
             show()
         }
     }
 
     /**
-     * Dismiss the loading dialog if it is showing.
+     * Dismiss the loading dialog if currently showing.
      */
     private fun dismissLoadingDialog() {
-        progressDialog?.takeIf { it.isShowing }?.dismiss()
+        loadingDialog?.takeIf { it.isShowing }?.dismiss()
     }
 
     /**
@@ -210,6 +216,40 @@ class LateComersActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Request permission to make phone calls.
+     */
+    private fun requestCallPhonePermission() {
+        if (!PermissionUtil.checkCallPhonePermission(this)) {
+            PermissionUtil.requestCallPhonePermission(this)
+        }
+    }
+    
+    /**
+     * Handle permission request results from the user.
+     */
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        
+        when (requestCode) {
+            PermissionUtil.REQUEST_CALL_PHONE_PERMISSION -> {
+                PermissionUtil.onRequestPermissionsResult(
+                    requestCode, permissions, grantResults,
+                    onGranted = {
+                        Toast.makeText(this, "Phone permission granted", Toast.LENGTH_SHORT).show()
+                    },
+                    onDenied = {
+                        Toast.makeText(this, "Phone permission is required to call students", Toast.LENGTH_LONG).show()
+                    }
+                )
+            }
+        }
+    }
+    
     /**
      * Handle errors during network requests.
      *

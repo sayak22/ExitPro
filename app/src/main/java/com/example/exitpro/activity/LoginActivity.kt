@@ -1,8 +1,8 @@
-package com.example.exitpro.Activity
+package com.example.exitpro.activity
 
-import android.app.ProgressDialog
+import android.app.Dialog
 import android.os.Bundle
-import android.view.View
+import android.view.Window
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
@@ -10,11 +10,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentTransaction
 import com.android.volley.Request
 import com.android.volley.RequestQueue
-import com.android.volley.Response
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
-import com.example.exitpro.Config.Config
-import com.example.exitpro.Fragment.OTPVerification
+import com.example.exitpro.config.Config
+import com.example.exitpro.fragment.OTPVerification
 import com.example.exitpro.R
 import org.json.JSONException
 import org.json.JSONObject
@@ -22,7 +21,7 @@ import org.json.JSONObject
 class LoginActivity : AppCompatActivity() {
     private lateinit var loginBtn: Button
     private lateinit var guardID: EditText
-    private lateinit var progressDialog: ProgressDialog
+    private var loadingDialog: Dialog? = null
     private lateinit var requestQueue: RequestQueue
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -105,18 +104,24 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Display a loading dialog with sending OTP message.
+     */
     private fun showLoadingDialog() {
-        progressDialog = ProgressDialog(this).apply {
+        loadingDialog = Dialog(this).apply {
+            requestWindowFeature(Window.FEATURE_NO_TITLE)
+            setContentView(R.layout.loading_dialog)
             setCancelable(false)
-            setMessage("Sending OTP...")
+            window?.setBackgroundDrawableResource(android.R.color.transparent)
             show()
         }
     }
 
+    /**
+     * Dismiss the loading dialog if currently showing.
+     */
     private fun dismissLoadingDialog() {
-        if (::progressDialog.isInitialized && progressDialog.isShowing) {
-            progressDialog.dismiss()
-        }
+        loadingDialog?.takeIf { it.isShowing }?.dismiss()
     }
 
     companion object {

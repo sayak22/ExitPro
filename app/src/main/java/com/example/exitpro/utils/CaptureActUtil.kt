@@ -1,4 +1,4 @@
-package com.example.exitpro.Utils
+package com.example.exitpro.utils
 
 import com.journeyapps.barcodescanner.CaptureActivity
 

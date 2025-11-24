@@ -1,4 +1,4 @@
-package com.example.exitpro.Utils
+package com.example.exitpro.utils
 
 import android.content.Context
 import android.os.Build
@@ -62,37 +62,47 @@ class FingerprintAuthHelperUtil(private val context: Context, private val layout
 
     /**
      * Start the biometric authentication process.
+     * Uses strong biometric authenticators for enhanced security.
      */
     fun authenticate() {
         val biometricManager = BiometricManager.from(context)
-        when (biometricManager.canAuthenticate()) {
+        
+        // Use BIOMETRIC_STRONG for Class 3 biometric security
+        val authenticators = BiometricManager.Authenticators.BIOMETRIC_STRONG
+        
+        when (biometricManager.canAuthenticate(authenticators)) {
             BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> {
                 Toast.makeText(
                     context.applicationContext,
-                    "No fingerprint hardware available",
+                    "No biometric hardware available",
                     Toast.LENGTH_SHORT
                 ).show()
             }
             BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> {
                 Toast.makeText(
                     context.applicationContext,
-                    "Fingerprint hardware is not available right now",
+                    "Biometric hardware is not available right now",
                     Toast.LENGTH_SHORT
                 ).show()
             }
             BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> {
-                Toast.makeText(
-                    context.applicationContext,
-                    "No fingerprint enrolled. Please add at least one fingerprint in device settings.",
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(context.applicationContext, "No biometric enrolled. Please add biometric authentication in device settings.", Toast.LENGTH_LONG).show()
+            }
+            BiometricManager.BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED -> {
+                Toast.makeText(context.applicationContext, "Security update required for biometric authentication", Toast.LENGTH_SHORT).show()
+            }
+            BiometricManager.BIOMETRIC_ERROR_UNSUPPORTED -> {
+                Toast.makeText(context.applicationContext, "Biometric authentication is not supported on this device", Toast.LENGTH_SHORT).show()
             }
             BiometricManager.BIOMETRIC_SUCCESS -> {
                 // Biometric authentication can be performed
                 val promptInfo = BiometricPrompt.PromptInfo.Builder()
-                    .setTitle("Fingerprint Authentication")
-                    .setSubtitle("Scan your fingerprint to unlock")
+                    .setTitle("Biometric Authentication")
+                    .setSubtitle("Verify your identity to continue")
+                    .setDescription("Use your fingerprint or face to unlock")
+                    .setAllowedAuthenticators(authenticators)
                     .setNegativeButtonText("Cancel")
+                    .setConfirmationRequired(true)
                     .build()
                 biometricPrompt.authenticate(promptInfo)
             }

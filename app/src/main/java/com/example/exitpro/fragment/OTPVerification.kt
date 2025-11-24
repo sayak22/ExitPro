@@ -1,6 +1,6 @@
-package com.example.exitpro.Fragment
+package com.example.exitpro.fragment
 
-import android.app.ProgressDialog
+import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -8,6 +8,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.Window
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
@@ -16,8 +17,8 @@ import com.android.volley.Request
 import com.android.volley.VolleyError
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
-import com.example.exitpro.Activity.HomeActivity
-import com.example.exitpro.Config.Config
+import com.example.exitpro.activity.HomeActivity
+import com.example.exitpro.config.Config
 import com.example.exitpro.R
 import org.json.JSONException
 import org.json.JSONObject
@@ -26,7 +27,7 @@ class OTPVerification : Fragment() {
     // UI elements
     private lateinit var otpEditText: EditText
     private lateinit var verifyButton: Button
-    private var progressDialog: ProgressDialog? = null
+    private var loadingDialog: Dialog? = null
     private val requestQueue by lazy { Volley.newRequestQueue(activity) }
     private var guardId: String? = null
 
@@ -114,21 +115,23 @@ class OTPVerification : Fragment() {
     }
 
     /**
-     * Shows the loading dialog.
+     * Display a loading dialog while verifying OTP.
      */
     private fun showLoadingDialog() {
-        progressDialog = ProgressDialog(activity).apply {
+        loadingDialog = Dialog(requireContext()).apply {
+            requestWindowFeature(Window.FEATURE_NO_TITLE)
+            setContentView(R.layout.loading_dialog)
             setCancelable(false)
-            setMessage("Checking OTP...")
+            window?.setBackgroundDrawableResource(android.R.color.transparent)
             show()
         }
     }
 
     /**
-     * Dismisses the loading dialog if it is showing.
+     * Dismiss the loading dialog if currently showing.
      */
     private fun dismissLoadingDialog() {
-        progressDialog?.takeIf { it.isShowing }?.dismiss()
+        loadingDialog?.takeIf { it.isShowing }?.dismiss()
     }
 
     /**

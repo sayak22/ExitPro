@@ -1,33 +1,33 @@
-package com.example.exitpro.Activity
+package com.example.exitpro.activity
 
 import android.app.Dialog
-import android.app.ProgressDialog
-import android.content.DialogInterface
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
+import android.os.Looper
 import android.util.Log
-import android.view.View
 import android.view.Window
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ProgressBar
 import android.widget.RelativeLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.android.volley.Request
-import com.android.volley.VolleyError
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
-import com.example.exitpro.Config.Config
 import com.example.exitpro.GlobalVariables
 import com.example.exitpro.R
-import com.example.exitpro.Utils.CaptureActUtil
-import com.example.exitpro.Utils.FingerprintAuthHelperUtil
+import com.example.exitpro.config.Config
+import com.example.exitpro.utils.CaptureActUtil
+import com.example.exitpro.utils.FingerprintAuthHelperUtil
+import com.example.exitpro.utils.PermissionUtil
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanIntentResult
 import com.journeyapps.barcodescanner.ScanOptions
@@ -48,7 +48,8 @@ class HomeActivity : AppCompatActivity() {
     private var scanNumber: Int = -1
     private var destination: String = ""
     private lateinit var globalVariables: GlobalVariables
-    private var progressDialog: ProgressDialog? = null
+    private var progressBar: ProgressBar? = null
+    private var loadingDialog: Dialog? = null
     private lateinit var fingerprintAuthHelperUtil: FingerprintAuthHelperUtil
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -77,6 +78,12 @@ class HomeActivity : AppCompatActivity() {
         if (!isLoggedIn) {
             redirectToLoginActivity()
         }
+        
+        // Configure back button behavior
+        setupBackPressHandler()
+        
+        // Request necessary runtime permissions
+        requestRuntimePermissions()
     }
 
     override fun onRestart() {
@@ -189,27 +196,53 @@ class HomeActivity : AppCompatActivity() {
         }
     }
 
-    override fun onBackPressed() {
-        super.onBackPressed()
-        moveTaskToBack(true) // Move the task containing this activity to the back of the activity stack
+    /**
+     * Request runtime permissions required by the app.
+     * Includes camera for scanning and notifications.
+     */
+    private fun requestRuntimePermissions() {
+        // Request camera permission if not granted
+        if (!PermissionUtil.checkCameraPermission(this)) {
+            PermissionUtil.requestCameraPermission(this)
+        }
+        
+        // Request notification permission on Android 13+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (!PermissionUtil.checkNotificationPermission(this)) {
+                PermissionUtil.requestNotificationPermission(this)
+            }
+        }
+    }
+    
+    /**
+     * Configure back button behavior to minimize app instead of closing.
+     */
+    private fun setupBackPressHandler() {
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                moveTaskToBack(true)
+            }
+        })
     }
 
     /**
-     * Show the loading dialog.
+     * Display a loading dialog while processing.
      */
     private fun showLoadingDialog() {
-        progressDialog = ProgressDialog(this).apply {
+        loadingDialog = Dialog(this).apply {
+            requestWindowFeature(Window.FEATURE_NO_TITLE)
+            setContentView(R.layout.loading_dialog)
             setCancelable(false)
-            setMessage("Please wait...")
+            window?.setBackgroundDrawableResource(android.R.color.transparent)
             show()
         }
     }
 
     /**
-     * Dismiss the loading dialog if it is showing.
+     * Dismiss the loading dialog if currently showing.
      */
     private fun dismissLoadingDialog() {
-        progressDialog?.takeIf { it.isShowing }?.dismiss()
+        loadingDialog?.takeIf { it.isShowing }?.dismiss()
     }
 
     /**
@@ -329,7 +362,43 @@ class HomeActivity : AppCompatActivity() {
             show()
         }
 
-        Handler().postDelayed({ dialog.dismiss() }, 2000)
+        Handler(Looper.getMainLooper()).postDelayed({ dialog.dismiss() }, 2000)
+    }
+
+    /**
+     * Handle permission request results from the user.
+     */
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        
+        when (requestCode) {
+            PermissionUtil.REQUEST_CAMERA_PERMISSION -> {
+                PermissionUtil.onRequestPermissionsResult(
+                    requestCode, permissions, grantResults,
+                    onGranted = {
+                        Toast.makeText(this, "Camera permission granted", Toast.LENGTH_SHORT).show()
+                    },
+                    onDenied = {
+                        Toast.makeText(this, "Camera permission is required for scanning QR codes", Toast.LENGTH_LONG).show()
+                    }
+                )
+            }
+            PermissionUtil.REQUEST_NOTIFICATION_PERMISSION -> {
+                PermissionUtil.onRequestPermissionsResult(
+                    requestCode, permissions, grantResults,
+                    onGranted = {
+                        // Notification permission granted
+                    },
+                    onDenied = {
+                        Toast.makeText(this, "Notification permission denied. You may not receive important updates.", Toast.LENGTH_LONG).show()
+                    }
+                )
+            }
+        }
     }
 
     companion object {
