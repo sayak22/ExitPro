@@ -1,4 +1,4 @@
-package com.example.exitpro.Adapter
+package com.example.exitpro.adapter
 
 import android.content.Context
 import android.util.Log
@@ -8,9 +8,9 @@ import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.example.exitpro.Model.LateStudent
+import com.example.exitpro.data.model.LateStudent
 import com.example.exitpro.R
-import com.example.exitpro.Utils.CallUtil
+import com.example.exitpro.utils.CallUtil
 
 class LateAdapter(
     private val context: Context,

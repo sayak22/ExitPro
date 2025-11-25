@@ -1,4 +1,4 @@
-package com.example.exitpro.Config
+package com.example.exitpro.config
 
 object Config {
     //RENDER URL
