@@ -2,6 +2,7 @@ plugins {
     id 'com.android.application'
     id("org.jetbrains.kotlin.android")
     id("kotlin-kapt")
+    id("kotlin-parcelize")
 }
 
 android {
@@ -52,13 +53,15 @@ dependencies {
     // zxing android embedded (barcode scanner)
     implementation 'com.journeyapps:zxing-android-embedded:4.3.0'
 
-    // Retrofit - updated for Android 15
+    // Retrofit - Modern type-safe HTTP client
     implementation 'com.google.code.gson:gson:2.11.0'
     implementation 'com.squareup.retrofit2:retrofit:2.11.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.11.0'
-
-    // Volley - updated
-    implementation 'com.android.volley:volley:1.2.1'
+    implementation 'com.squareup.okhttp3:logging-interceptor:4.12.0'
+    
+    // Coroutines for async operations
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.0'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0'
 
     // Biometric - Android 15 compatible
     implementation "androidx.biometric:biometric:1.4.0-alpha02"
@@ -66,6 +69,10 @@ dependencies {
     // Lifecycle components for modern Android
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.8.7'
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7'
+    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.8.7'
+    
+    // Activity KTX for viewModels() delegate
+    implementation 'androidx.activity:activity-ktx:1.9.3'
 
     // Testing
     testImplementation 'junit:junit:4.13.2'

@@ -3,33 +3,29 @@ package com.example.exitpro.activity
 import android.app.Dialog
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.Window
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.android.volley.Request
-import com.android.volley.VolleyError
-import com.android.volley.toolbox.JsonArrayRequest
-import com.android.volley.toolbox.Volley
-import com.example.exitpro.adapter.LateAdapter
-import com.example.exitpro.config.Config
 import com.example.exitpro.GlobalVariables
-import com.example.exitpro.Model.LateStudent
 import com.example.exitpro.R
+import com.example.exitpro.adapter.LateAdapter
+import com.example.exitpro.data.api.RetrofitClient
+import com.example.exitpro.data.model.LateStudent
+import com.example.exitpro.data.repository.ExitProRepository
 import com.example.exitpro.utils.FingerprintAuthHelperUtil
 import com.example.exitpro.utils.PermissionUtil
-import org.json.JSONArray
-import org.json.JSONException
-import org.json.JSONObject
-import java.text.ParseException
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Locale
+import com.example.exitpro.viewmodel.LateComersViewModel
+import com.example.exitpro.viewmodel.ViewModelFactory
+import com.example.exitpro.viewmodel.state.LateStudentsUiState
+import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.P)
 class LateComersActivity : AppCompatActivity() {
@@ -42,6 +38,13 @@ class LateComersActivity : AppCompatActivity() {
     private lateinit var lLateLayout: LinearLayout
     private lateinit var searchView: SearchView
     private lateinit var lateAdapter: LateAdapter
+    
+    // MVVM - ViewModel
+    private val viewModel: LateComersViewModel by lazy {
+        val repository = ExitProRepository(RetrofitClient.apiService)
+        val factory = ViewModelFactory(repository)
+        factory.create(LateComersViewModel::class.java)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,8 +66,7 @@ class LateComersActivity : AppCompatActivity() {
 
         requestCallPhonePermission()
         
-        // Show loading dialog and fetch the list of late students
-        showLoadingDialog()
+        // Fetch the list of late students
         fetchLateStudents()
 
         // Initialize and set up the search view
@@ -77,38 +79,15 @@ class LateComersActivity : AppCompatActivity() {
 
             override fun onQueryTextChange(newText: String?): Boolean {
                 // Called when the user changes the query text
-                filterList(newText)
+                viewModel.searchStudents(newText)
                 return true
             }
         })
+        
+        // Observe ViewModel state
+        observeLateStudentsState()
     }
 
-    /**
-     * Filter the list of students based on the search text.
-     *
-     * @param text The text to filter the list by.
-     */
-    private fun filterList(text: String?) {
-        val filteredList: MutableList<LateStudent> = mutableListOf()
-
-        // Filter the lateList based on the search text
-        text?.let { // this block only executes if text is not null
-            for (item in lateList) {
-                if (item.name?.lowercase()?.contains(text.lowercase()) == true) {
-                    filteredList.add(item)
-                }
-            }
-        }
-
-            // Update the adapter with the filtered list (even if it is empty)
-            lateAdapter.setFilteredList(filteredList)
-
-        // Show a toast if no students match the search text
-        if (filteredList.isEmpty())
-            Toast.makeText(this, "Student not found.", Toast.LENGTH_SHORT).show()
-
-
-    }
 
     override fun onRestart() {
         super.onRestart()
@@ -137,82 +116,44 @@ class LateComersActivity : AppCompatActivity() {
     }
 
     /**
-     * Fetch the list of late students from the backend.
+     * Fetch the list of late students using ViewModel (MVVM pattern).
      */
     private fun fetchLateStudents() {
-        val queue = Volley.newRequestQueue(this)
-
-        // Create and send JSON array request to fetch late students
-        val jsonArrayRequest = JsonArrayRequest(
-            Request.Method.GET,
-            LATE_URL,
-            null,
-            { response ->
-                dismissLoadingDialog()
-                handleResponse(response)
-            },
-            { error ->
-                dismissLoadingDialog()
-                handleError(error)
-            })
-
-        queue.add(jsonArrayRequest)
+        viewModel.fetchLateStudents()
     }
-
+    
     /**
-     * Handle the response from the backend.
-     *
-     * @param response The JSON array response from the backend.
+     * Observe late students state from ViewModel and update UI accordingly.
      */
-    private fun handleResponse(response: JSONArray) {
-        try {
-            for (i in 0 until response.length()) {
-                val jsonObject = response.getJSONObject(i)
-                val student = parseLateStudent(jsonObject)
-                student?.let { lateList.add(it) }
-            }
-            globalVariables.lateList = lateList
-            lateAdapter.notifyDataSetChanged()  // Notify the adapter of data changes
-        } catch (e: JSONException) {
-            Log.e("JSONError", "JSON parsing error", e)
-        }
-    }
-
-    /**
-     * Parse a JSON object into a LateStudent object.
-     *
-     * @param jsonObject The JSON object representing a late student.
-     * @return The parsed LateStudent object, or null if parsing fails.
-     */
-    private fun parseLateStudent(jsonObject: JSONObject): LateStudent? {
-        return try {
-            val student = LateStudent().apply {
-                phoneNumber = jsonObject.getString("contact")
-                name = jsonObject.getString("name")
-                rollNumber = jsonObject.getInt("roll_number")
-                destination = jsonObject.getString("goingTo")
-
-                val outTime = jsonObject.getString("outTime")
-                val sdf = SimpleDateFormat("MMM dd yyyy HH:mm:ss", Locale.getDefault())
-                val date = sdf.parse(outTime)
-
-                date?.let {
-                    val calendar = Calendar.getInstance().apply { time = it }
-                    year = calendar[Calendar.YEAR]
-                    month = calendar[Calendar.MONTH] + 1 // Month is zero-based
-                    day = calendar[Calendar.DAY_OF_MONTH]
-                    hour = String.format("%02d", calendar[Calendar.HOUR_OF_DAY])
-                    minute = String.format("%02d", calendar[Calendar.MINUTE])
-                    second = String.format("%02d", calendar[Calendar.SECOND])
+    private fun observeLateStudentsState() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.lateStudentsState.collect { state ->
+                    when (state) {
+                        is LateStudentsUiState.Idle -> {
+                            // Do nothing
+                        }
+                        is LateStudentsUiState.Loading -> {
+                            showLoadingDialog()
+                        }
+                        is LateStudentsUiState.Success -> {
+                            dismissLoadingDialog()
+                            lateList.clear()
+                            lateList.addAll(state.students)
+                            globalVariables.lateList = lateList
+                            lateAdapter.notifyDataSetChanged()
+                        }
+                        is LateStudentsUiState.Empty -> {
+                            dismissLoadingDialog()
+                            Toast.makeText(this@LateComersActivity, state.message, Toast.LENGTH_SHORT).show()
+                        }
+                        is LateStudentsUiState.Error -> {
+                            dismissLoadingDialog()
+                            Toast.makeText(this@LateComersActivity, state.message, Toast.LENGTH_SHORT).show()
+                        }
+                    }
                 }
             }
-            student
-        } catch (e: JSONException) {
-            Log.e("ParseError", "Failed to parse late student", e)
-            null
-        } catch (e: ParseException) {
-            Log.e("ParseError", "Failed to parse date", e)
-            null
         }
     }
 
@@ -250,18 +191,4 @@ class LateComersActivity : AppCompatActivity() {
         }
     }
     
-    /**
-     * Handle errors during network requests.
-     *
-     * @param error The error that occurred.
-     */
-    private fun handleError(error: VolleyError) {
-        Toast.makeText(applicationContext, "ERROR - > $error", Toast.LENGTH_SHORT).show()
-        Log.e("RequestError", error.toString())
-    }
-
-    companion object {
-        // URL for fetching late students
-        private const val LATE_URL: String = Config.BASE_URL + "/student/out/late"
-    }
 }

@@ -8,21 +8,29 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentTransaction
-import com.android.volley.Request
-import com.android.volley.RequestQueue
-import com.android.volley.toolbox.JsonObjectRequest
-import com.android.volley.toolbox.Volley
-import com.example.exitpro.config.Config
-import com.example.exitpro.fragment.OTPVerification
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.Lifecycle
 import com.example.exitpro.R
-import org.json.JSONException
-import org.json.JSONObject
+import com.example.exitpro.data.api.RetrofitClient
+import com.example.exitpro.data.repository.ExitProRepository
+import com.example.exitpro.fragment.OTPVerification
+import com.example.exitpro.viewmodel.LoginViewModel
+import com.example.exitpro.viewmodel.ViewModelFactory
+import com.example.exitpro.viewmodel.state.LoginUiState
+import kotlinx.coroutines.launch
 
 class LoginActivity : AppCompatActivity() {
     private lateinit var loginBtn: Button
     private lateinit var guardID: EditText
     private var loadingDialog: Dialog? = null
-    private lateinit var requestQueue: RequestQueue
+    
+    // MVVM - ViewModel
+    private val viewModel: LoginViewModel by lazy {
+        val repository = ExitProRepository(RetrofitClient.apiService)
+        val factory = ViewModelFactory(repository)
+        factory.create(LoginViewModel::class.java)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,9 +39,6 @@ class LoginActivity : AppCompatActivity() {
         // Initialize UI elements
         loginBtn = findViewById(R.id.login_button)
         guardID = findViewById(R.id.guard_id_input)
-
-        // Initialize Volley request queue
-        requestQueue = Volley.newRequestQueue(this)
 
         // Set click listener for the login button
         loginBtn.setOnClickListener {
@@ -45,46 +50,49 @@ class LoginActivity : AppCompatActivity() {
                 guardID.error = "Guard ID cannot be empty"
             }
         }
+        
+        // Observe ViewModel state
+        observeLoginState()
     }
 
+    /**
+     * Send guard ID to server for login using ViewModel (MVVM pattern).
+     */
     private fun sendGuardID(guardId: String) {
-        showLoadingDialog()
-
-        val jsonBody = JSONObject()
-        try {
-            jsonBody.put("guardId", guardId)
-        } catch (e: JSONException) {
-            e.printStackTrace()
-            dismissLoadingDialog()
-            Toast.makeText(this, "Error creating request body", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val request = JsonObjectRequest(
-            Request.Method.PUT,
-            LOGIN_URL,
-            jsonBody,
-            { response ->
-                dismissLoadingDialog()
-                try {
-                    val isSuccess = response.getBoolean("isSuccess")
-                    if (isSuccess) {
-                        otpVerificationFragment(guardId)
-                    } else {
-                        guardID.error = "Wrong credentials"
+        viewModel.login(guardId)
+    }
+    
+    /**
+     * Observe login state from ViewModel and update UI accordingly.
+     */
+    private fun observeLoginState() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.loginState.collect { state ->
+                    when (state) {
+                        is LoginUiState.Idle -> {
+                            // Do nothing
+                        }
+                        is LoginUiState.Loading -> {
+                            showLoadingDialog()
+                        }
+                        is LoginUiState.Success -> {
+                            dismissLoadingDialog()
+                            // Get the guard ID from the EditText to pass to OTP fragment
+                            val guardId = guardID.text.toString().trim()
+                            otpVerificationFragment(guardId)
+                            viewModel.resetLoginState()
+                        }
+                        is LoginUiState.Error -> {
+                            dismissLoadingDialog()
+                            guardID.error = state.message
+                            Toast.makeText(this@LoginActivity, state.message, Toast.LENGTH_SHORT).show()
+                            viewModel.resetLoginState()
+                        }
                     }
-                } catch (e: JSONException) {
-                    e.printStackTrace()
-                    Toast.makeText(this, "Response parsing error", Toast.LENGTH_SHORT).show()
                 }
-            },
-            { error ->
-                dismissLoadingDialog()
-                Toast.makeText(this, "Error: ${error.message}", Toast.LENGTH_SHORT).show()
             }
-        )
-
-        requestQueue.add(request)
+        }
     }
 
     private fun otpVerificationFragment(guardId: String) {
@@ -124,7 +132,4 @@ class LoginActivity : AppCompatActivity() {
         loadingDialog?.takeIf { it.isShowing }?.dismiss()
     }
 
-    companion object {
-        private const val LOGIN_URL = "${Config.BASE_URL}/security/login"
-    }
 }

@@ -19,20 +19,23 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import com.android.volley.Request
-import com.android.volley.toolbox.JsonObjectRequest
-import com.android.volley.toolbox.Volley
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.Lifecycle
 import com.example.exitpro.GlobalVariables
 import com.example.exitpro.R
-import com.example.exitpro.config.Config
+import com.example.exitpro.data.api.RetrofitClient
+import com.example.exitpro.data.repository.ExitProRepository
 import com.example.exitpro.utils.CaptureActUtil
 import com.example.exitpro.utils.FingerprintAuthHelperUtil
 import com.example.exitpro.utils.PermissionUtil
+import com.example.exitpro.viewmodel.HomeViewModel
+import com.example.exitpro.viewmodel.ViewModelFactory
+import com.example.exitpro.viewmodel.state.ScanUiState
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanIntentResult
 import com.journeyapps.barcodescanner.ScanOptions
-import org.json.JSONException
-import org.json.JSONObject
+import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.P)
 class HomeActivity : AppCompatActivity() {
@@ -51,6 +54,13 @@ class HomeActivity : AppCompatActivity() {
     private var progressBar: ProgressBar? = null
     private var loadingDialog: Dialog? = null
     private lateinit var fingerprintAuthHelperUtil: FingerprintAuthHelperUtil
+    
+    // MVVM - ViewModel
+    private val viewModel: HomeViewModel by lazy {
+        val repository = ExitProRepository(RetrofitClient.apiService)
+        val factory = ViewModelFactory(repository)
+        factory.create(HomeViewModel::class.java)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -84,6 +94,9 @@ class HomeActivity : AppCompatActivity() {
         
         // Request necessary runtime permissions
         requestRuntimePermissions()
+        
+        // Observe ViewModel states
+        observeViewModelStates()
     }
 
     override fun onRestart() {
@@ -154,46 +167,10 @@ class HomeActivity : AppCompatActivity() {
     }
 
     /**
-     * Handle the scan-in process.
+     * Handle the scan-in process using ViewModel (MVVM pattern).
      */
     private fun handleInScan() {
-        showLoadingDialog()
-        val jsonRequest = JSONObject()
-        val queue = Volley.newRequestQueue(this)
-
-        // Create and send the JSON request for in scan
-        val jsonObjectRequest = JsonObjectRequest(
-            Request.Method.PUT,
-            "$inURL$scanNumber",
-            jsonRequest,
-            { response ->
-                dismissLoadingDialog()
-                handleInScanResponse(response)
-            },
-            { error ->
-                dismissLoadingDialog()
-                Toast.makeText(applicationContext, "ERROR", Toast.LENGTH_SHORT).show()
-                error?.printStackTrace()
-            })
-
-        queue.add(jsonObjectRequest)
-    }
-
-    /**
-     * Handle the response from the in-scan request.
-     *
-     * @param response The JSON response from the server.
-     */
-    private fun handleInScanResponse(response: JSONObject) {
-        try {
-            if (response.getBoolean("isSuccess")) {
-                showSuccessDialog()
-            } else {
-                Toast.makeText(applicationContext, "STUDENT IS INSIDE CAMPUS!", Toast.LENGTH_SHORT).show()
-            }
-        } catch (e: JSONException) {
-            Log.e("JSONError", "Failed to parse in-scan response", e)
-        }
+        viewModel.processStudentEntry(scanNumber)
     }
 
     /**
@@ -308,46 +285,10 @@ class HomeActivity : AppCompatActivity() {
     }
 
     /**
-     * Send the out-scan request to the server.
+     * Send the out-scan request to the server using ViewModel (MVVM pattern).
      */
     private fun sendOutScanRequest() {
-        showLoadingDialog()
-        val jsonObject = JSONObject().apply {
-            put("roll_number", scanNumber)
-            put("goingTo", destination)
-        }
-
-        val queue = Volley.newRequestQueue(this)
-        val jsonRequest = JsonObjectRequest(
-            Request.Method.POST, outURL, jsonObject,
-            { response ->
-                dismissLoadingDialog()
-                handleOutScanResponse(response)
-            },
-            { error ->
-                dismissLoadingDialog()
-                Toast.makeText(applicationContext, "ERROR", Toast.LENGTH_SHORT).show()
-                error?.printStackTrace()
-            })
-
-        queue.add(jsonRequest)
-    }
-
-    /**
-     * Handle the response from the out-scan request.
-     *
-     * @param response The JSON response from the server.
-     */
-    private fun handleOutScanResponse(response: JSONObject) {
-        try {
-            if (response.getBoolean("isSuccess")) {
-                showSuccessDialog()
-            } else {
-                Toast.makeText(applicationContext, "STUDENT ALREADY OUT!", Toast.LENGTH_SHORT).show()
-            }
-        } catch (e: JSONException) {
-            Log.e("JSONError", "Failed to parse out-scan response", e)
-        }
+        viewModel.processStudentExit(scanNumber, destination)
     }
 
     /**
@@ -363,6 +304,68 @@ class HomeActivity : AppCompatActivity() {
         }
 
         Handler(Looper.getMainLooper()).postDelayed({ dialog.dismiss() }, 2000)
+    }
+
+    /**
+     * Observe ViewModel state changes and update UI accordingly (MVVM pattern).
+     */
+    private fun observeViewModelStates() {
+        // Observe student entry state
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.entryState.collect { state ->
+                    when (state) {
+                        is ScanUiState.Idle -> {
+                            // Do nothing
+                        }
+                        is ScanUiState.Loading -> {
+                            showLoadingDialog()
+                        }
+                        is ScanUiState.Success -> {
+                            dismissLoadingDialog()
+                            showSuccessDialog()
+                            viewModel.resetEntryState()
+                        }
+                        is ScanUiState.Error -> {
+                            dismissLoadingDialog()
+                            val message = if (state.message == "Student is inside campus") {
+                                "STUDENT IS INSIDE CAMPUS!"
+                            } else {
+                                state.message
+                            }
+                            Toast.makeText(applicationContext, message, Toast.LENGTH_SHORT).show()
+                            viewModel.resetEntryState()
+                        }
+                    }
+                }
+            }
+        }
+
+        // Observe student exit state
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.exitState.collect { state ->
+                    when (state) {
+                        is ScanUiState.Idle -> {
+                            // Do nothing
+                        }
+                        is ScanUiState.Loading -> {
+                            showLoadingDialog()
+                        }
+                        is ScanUiState.Success -> {
+                            dismissLoadingDialog()
+                            showSuccessDialog()
+                            viewModel.resetExitState()
+                        }
+                        is ScanUiState.Error -> {
+                            dismissLoadingDialog()
+                            Toast.makeText(applicationContext, state.message, Toast.LENGTH_SHORT).show()
+                            viewModel.resetExitState()
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -401,9 +404,4 @@ class HomeActivity : AppCompatActivity() {
         }
     }
 
-    companion object {
-        // URLs for API requests
-        private const val outURL: String = "${Config.BASE_URL}/student/gate/exit"
-        private const val inURL: String = "${Config.BASE_URL}/student/gate/entry/"
-    }
 }

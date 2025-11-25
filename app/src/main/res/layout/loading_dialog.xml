@@ -11,8 +11,7 @@
         android:id="@+id/progress_circular"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:indeterminate="true"
-        style="@style/Widget.Material3.CircularProgressIndicator" />
+        android:indeterminate="true" />
 
     <TextView
         android:id="@+id/loading_text"

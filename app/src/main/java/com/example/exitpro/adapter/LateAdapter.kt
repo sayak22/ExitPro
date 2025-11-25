@@ -8,7 +8,7 @@ import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.example.exitpro.Model.LateStudent
+import com.example.exitpro.data.model.LateStudent
 import com.example.exitpro.R
 import com.example.exitpro.utils.CallUtil
 

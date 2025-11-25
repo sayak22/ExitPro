@@ -13,22 +13,20 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import com.android.volley.Request
-import com.android.volley.VolleyError
-import com.android.volley.toolbox.JsonObjectRequest
-import com.android.volley.toolbox.Volley
-import com.example.exitpro.activity.HomeActivity
-import com.example.exitpro.config.Config
+import androidx.lifecycle.lifecycleScope
 import com.example.exitpro.R
-import org.json.JSONException
-import org.json.JSONObject
+import com.example.exitpro.activity.HomeActivity
+import com.example.exitpro.data.api.ApiResponse
+import com.example.exitpro.data.api.RetrofitClient
+import com.example.exitpro.data.repository.ExitProRepository
+import kotlinx.coroutines.launch
 
 class OTPVerification : Fragment() {
     // UI elements
     private lateinit var otpEditText: EditText
     private lateinit var verifyButton: Button
     private var loadingDialog: Dialog? = null
-    private val requestQueue by lazy { Volley.newRequestQueue(activity) }
+    private val repository by lazy { ExitProRepository(RetrofitClient.apiService) }
     private var guardId: String? = null
 
     override fun onCreateView(
@@ -54,31 +52,29 @@ class OTPVerification : Fragment() {
      * Verifies the OTP entered by the user.
      */
     private fun verifyOTP() {
-        // Show loading dialog
         showLoadingDialog()
 
-        // Get the entered OTP
         val otp = otpEditText.text.toString()
+        val currentGuardId = guardId
 
-        // Create JSON object with guard ID and OTP
-        val jsonBody = JSONObject()
-        try {
-            jsonBody.put("guardId", guardId)
-            jsonBody.put("otp", otp)
-            Log.d("OTPVerification", "JSON Body: $jsonBody")
-        } catch (e: JSONException) {
-            e.printStackTrace()
+        if (currentGuardId == null) {
+            dismissLoadingDialog()
+            showError("Guard ID not found")
+            return
         }
 
-        // Create a request to verify the OTP
-        val request = JsonObjectRequest(
-            Request.Method.POST, OTP_URL, jsonBody,
-            { response: JSONObject ->
-                dismissLoadingDialog()
-                try {
-                    val isSuccess = response.getBoolean("isSuccess")
-                    if (isSuccess) {
-                        val guardName = response.getString("guardName")
+        if (otp.isEmpty()) {
+            dismissLoadingDialog()
+            showError("Please enter OTP")
+            return
+        }
+
+        lifecycleScope.launch {
+            when (val response = repository.verifyOTP(currentGuardId, otp)) {
+                is ApiResponse.Success -> {
+                    dismissLoadingDialog()
+                    if (response.data.isSuccess) {
+                        val guardName = response.data.guardName ?: "Guard"
                         saveAccessToken(otp, guardName)
                         val intent = Intent(activity, HomeActivity::class.java)
                         startActivity(intent)
@@ -86,18 +82,25 @@ class OTPVerification : Fragment() {
                     } else {
                         showError("Wrong OTP")
                     }
-                } catch (e: JSONException) {
-                    e.printStackTrace()
-                    showError("Wrong OTP")
-                    Log.e("OTPVerification", "JSON Parsing error", e)
                 }
-            },
-            { error: VolleyError ->
-                dismissLoadingDialog()
-                Toast.makeText(activity, "Error: ${error.message}", Toast.LENGTH_SHORT).show()
-            })
-
-        requestQueue.add(request)
+                is ApiResponse.Error -> {
+                    dismissLoadingDialog()
+                    showError("Error: ${response.message}")
+                }
+                is ApiResponse.Exception -> {
+                    dismissLoadingDialog()
+                    val errorMessage = when (response.exception) {
+                        is java.net.UnknownHostException -> "No internet connection"
+                        is java.net.SocketTimeoutException -> "Connection timeout"
+                        else -> "Error: ${response.exception.message}"
+                    }
+                    showError(errorMessage)
+                }
+                is ApiResponse.Loading -> {
+                    // Loading state already handled
+                }
+            }
+        }
     }
 
     /**
@@ -144,7 +147,4 @@ class OTPVerification : Fragment() {
         Toast.makeText(requireActivity().applicationContext, message, Toast.LENGTH_SHORT).show()
     }
 
-    companion object {
-        private const val OTP_URL = Config.BASE_URL + "/security/otpMatch"
-    }
 }
